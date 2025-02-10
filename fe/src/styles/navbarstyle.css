@@ -1,0 +1,8 @@
+.sidebar {
+  width: 50px; /* Default ukuran kecil */
+  transition: width 0.3s ease; /* Animasi perubahan */
+}
+
+.sidebar:hover {
+  width: 250px; /* Perbesar saat di-hover */
+}
