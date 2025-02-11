@@ -86,7 +86,8 @@ function Jadwal({ title = "Jadwal" }) {
                 border: "1px solid #ddd",
               }}
               onMouseEnter={(e) =>
-                (e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.15)")
+                (e.currentTarget.style.boxShadow =
+                  "0 4px 10px rgba(0,0,0,0.15)")
               }
               onMouseLeave={(e) =>
                 (e.currentTarget.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)")
@@ -101,15 +102,59 @@ function Jadwal({ title = "Jadwal" }) {
                   checked={schedule[index]}
                   onChange={() => toggleSchedule(index)}
                 />
-                <span
-                  className="slider round"
-                  style={{
-                    backgroundColor: schedule[index] ? colors.primary : "#ccc",
-                  }}
-                ></span>
+                <span className="slider"></span>
               </label>
             </div>
           ))}
+
+          <style>
+            {`
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+    }
+    
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 20px;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+      background-color: #4CAF50;
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+  `}
+          </style>
         </div>
       </div>
     </div>
