@@ -12,7 +12,7 @@ const AdminLayout = () => {
     setIsSelected(item);
     if (ismove) {
       const formattedUrl = item.toLowerCase().replace(/\s+/g, "-");
-      navigate(ismaster ? `/master/${formattedUrl}` : `/${formattedUrl}`);
+      navigate(ismaster ? `/admin/master/${formattedUrl}` : `/admin/${formattedUrl}`);
     }
   };
 

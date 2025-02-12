@@ -6,3 +6,20 @@
 .sidebar:hover {
   width: 250px; /* Perbesar saat di-hover */
 }
+.nav-link-custom {
+  color: #B82132; /* Warna merah Bootstrap */
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: all 0.3s ease-in-out;
+}
+
+.nav-link-custom:hover {
+  background-color: #B82132; /* Merah */
+  color: white !important;
+  width: 100%;
+}
+.nav-item{
+  width: 90px;
+  /* background: #000; */
+}
