@@ -1,4 +1,4 @@
-import User from "./model";
+import User from "./model.js";
 import { Op } from "sequelize";
 
 class UserService {
