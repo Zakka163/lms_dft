@@ -5,4 +5,5 @@ import { authMiddleware, authorizationMiddleware } from "../../middleware/authMi
 const RouterUser = Router();
 RouterUser.get('/list', authMiddleware, authorizationMiddleware("admin"), controllerGetUsers);
 
+
 export default RouterUser;

@@ -18,7 +18,8 @@ const scopes = [
 
 const googleAuthUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: scopes
+    scope: scopes,
+    prompt:"select_account"
 });
 
 interface Payload {
@@ -76,7 +77,8 @@ export const controllerCallbackAuthGoogle = async (req: Request, res: Response):
             payload.role = existingUser.dataValues.role;
         }
         const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '1h' });
-        res.json({ token, role: payload.role });
+        res.redirect(`${process.env.URL_FRONTEND}/auth-success?token=${token}`);
+        // res.json({ token, role: payload.role });
     } catch (error) {
         console.error("Error during Google callback", error);
         res.status(500).json({ message: "Error during Google callback", error });
