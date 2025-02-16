@@ -8,25 +8,25 @@ import cors from "cors"
 const app = express();
 const PORT = 5000;
 testConnection()
-async function seedData() {
-    try {
-        const salt = await bcrypt.genSalt(10);
-        const passwrodhash = await bcrypt.hash("123", salt);
-        await UserService.createUser({
-            user_id: 1,
-            nama: "admin",
-            password: passwrodhash,
-            email: "m@gmail.com",
-            kelamin: "L",
-            nomor_telpon: "0861673",
-            role: "siswa",
-            poin: 0
-        })
-    } catch (error) {
-        console.log(error);
+// async function seedData() {
+//     try {
+//         const salt = await bcrypt.genSalt(10);
+//         const passwrodhash = await bcrypt.hash("123", salt);
+//         await UserService.createUser({
+//             user_id: 1,
+//             nama: "admin",
+//             password: passwrodhash,
+//             email: "m@gmail.com",
+//             kelamin: "L",
+//             nomor_telpon: "0861673",
+//             role: "siswa",
+//             poin: 0
+//         })
+//     } catch (error) {
+//         console.log(error);
 
-    }
-}
+//     }
+// }
 
 // seedData()
 app.use(cors({
