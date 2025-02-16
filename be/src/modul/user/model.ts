@@ -25,7 +25,7 @@ User.init(
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     email: {
       type: DataTypes.STRING,
@@ -37,14 +37,12 @@ User.init(
     },
     kelamin: {
       type: DataTypes.ENUM("L", "P"),
-      allowNull: false,
+      allowNull: true,
     },
     nomor_telpon: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        isNumeric: true,
-      },
+      allowNull: true,
+      defaultValue:"-"
     },
     role: {
       type: DataTypes.ENUM("admin", "siswa"),

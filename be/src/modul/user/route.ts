@@ -1,9 +1,8 @@
-import { Response, Router,Request } from "express";
+import { Response, Router, Request } from "express";
 import { controllerGetUsers } from "./controller.js";
-const RouterUser = Router()
+import { authMiddleware, authorizationMiddleware } from "../../middleware/authMiddleware.js";
 
-RouterUser.get('/list',controllerGetUsers)
+const RouterUser = Router();
+RouterUser.get('/list', authMiddleware, authorizationMiddleware("admin"), controllerGetUsers);
 
-
-
-export default RouterUser
+export default RouterUser;

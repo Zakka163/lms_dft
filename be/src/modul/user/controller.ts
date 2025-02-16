@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import UserService from './service.js'; 
 
-export const controllerGetUsers = async (req: Request, res: Response) => {
+export const controllerGetUsers = async (req: any, res: Response) => {
     try {
         const filters = req.query; 
         const users = await UserService.getAllUsers(filters);
