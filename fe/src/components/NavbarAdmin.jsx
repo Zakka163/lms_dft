@@ -15,14 +15,17 @@ const AdminLayout = () => {
       navigate(ismaster ? `/admin/master/${formattedUrl}` : `/admin/${formattedUrl}`);
     }
   };
-
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
   return (
     <nav
       className="vh-100 d-flex flex-column align-items-start"
       style={{
         margin: 0,
         padding: "10px",
-        height:"100%",
+        height: "100%",
         width: isHovered ? "280px" : "50px",
         backgroundColor: colors.primary,
         transition: "width 0.3s ease",
@@ -42,11 +45,10 @@ const AdminLayout = () => {
         {/* Dashboard */}
         <li className="nav-item">
           <a
-            className={`nav-link ${
-              isSelected === "Dashboard"
+            className={`nav-link ${isSelected === "Dashboard"
                 ? "text-red-500 bg-white rounded"
                 : "text-white"
-            }`}
+              }`}
             href="#"
             onClick={(e) => {
               e.preventDefault();
@@ -94,11 +96,10 @@ const AdminLayout = () => {
               {/* Jadwal */}
               <li className="nav-item">
                 <a
-                  className={`nav-link ${
-                    isSelected === "Jadwal"
+                  className={`nav-link ${isSelected === "Jadwal"
                       ? "text-red-500 bg-white rounded"
                       : "text-white"
-                  }`}
+                    }`}
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
@@ -117,11 +118,10 @@ const AdminLayout = () => {
               {/* Poin */}
               <li className="nav-item">
                 <a
-                  className={`nav-link ${
-                    isSelected === "Poin"
+                  className={`nav-link ${isSelected === "Poin"
                       ? "text-red-500 bg-white rounded"
                       : "text-white"
-                  }`}
+                    }`}
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
@@ -140,11 +140,10 @@ const AdminLayout = () => {
               {/* Kategori */}
               <li className="nav-item">
                 <a
-                  className={`nav-link ${
-                    isSelected === "Kategori"
+                  className={`nav-link ${isSelected === "Kategori"
                       ? "text-red-500 bg-white rounded"
                       : "text-white"
-                  }`}
+                    }`}
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
@@ -163,11 +162,10 @@ const AdminLayout = () => {
               {/* Kelas */}
               <li className="nav-item">
                 <a
-                  className={`nav-link ${
-                    isSelected === "Kelas"
+                  className={`nav-link ${isSelected === "Kelas"
                       ? "text-red-500 bg-white rounded"
                       : "text-white"
-                  }`}
+                    }`}
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
@@ -189,11 +187,10 @@ const AdminLayout = () => {
         {/* Menu Lainnya */}
         <li className="nav-item">
           <a
-            className={`nav-link ${
-              isSelected === "Daftar Siswa"
+            className={`nav-link ${isSelected === "Daftar Siswa"
                 ? "text-red-500 bg-white rounded"
                 : "text-white"
-            }`}
+              }`}
             href="#"
             onClick={(e) => {
               e.preventDefault();
@@ -216,11 +213,10 @@ const AdminLayout = () => {
 
         <li className="nav-item">
           <a
-            className={`nav-link ${
-              isSelected === "Jadwal Pertemuan"
+            className={`nav-link ${isSelected === "Jadwal Pertemuan"
                 ? "text-red-500 bg-white rounded"
                 : "text-white"
-            }`}
+              }`}
             href="#"
             onClick={(e) => {
               e.preventDefault();
@@ -245,11 +241,10 @@ const AdminLayout = () => {
 
         <li className="nav-item">
           <a
-            className={`nav-link ${
-              isSelected === "Transaksi"
+            className={`nav-link ${isSelected === "Transaksi"
                 ? "text-red-500 bg-white rounded"
                 : "text-white"
-            }`}
+              }`}
             href="#"
             onClick={(e) => {
               e.preventDefault();
@@ -268,6 +263,25 @@ const AdminLayout = () => {
               Transaksi
             </span>
           </a>
+        </li>
+        <li className="nav-item mt-auto">
+          <button
+            onClick={handleLogout}
+            className="btn btn-danger"
+            style={{
+              marginTop: "100px",
+              marginLeft:"2px",
+              // padding: "10px",
+              fontWeight: "bold",
+              backgroundColor: colors.background,
+              color: colors.primary,
+              border: "none",
+              borderRadius: "4px",
+              display: isHovered ? "inline" : "none"
+            }}
+          >
+            Logout
+          </button>
         </li>
       </ul>
     </nav>
