@@ -1,25 +1,109 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import colors from "../../helper/colors";
+import { config } from "../../config";
+import axios from "axios";
+import { errorNotify, successNotify } from "../../helper/toast";
+import { ToastContainer } from "react-toastify";
+import { motion } from "framer-motion";
+function Jadwal() {
+  const [daySelected, setDaySelected] = useState("Senin");
+  const [dataJadwal, setDataJadwal] = useState([]);
+  let token = localStorage.getItem("token");
+  useEffect(() => {
 
-function Jadwal({ title = "Jadwal" }) {
-  const [daySelected, setDaySelected] = useState(null);
-  const [schedule, setSchedule] = useState(Array(10).fill(false));
+  }, [])
+  const servicefetchAll = async () => {
+    if (!token) {
+      errorNotify("Token not found");
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `${config.APIURL}/ms_schedule/list?hari=${daySelected}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(response.data.data);
+      setDataJadwal(response.data.data);
+    } catch (error) {
+      console.log("Error fetching schedule", error);
+      if (error.response?.status === 401) {
+        errorNotify("Access Denied");
+      }
+      if (error.response?.status === 404) {
+        errorNotify("Data not found");
+      }
+    }
+  };
+  const serviceUpdate = async (value) => {
+    console.log(value);
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      errorNotify("Token not found");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${config.APIURL}/ms_schedule/update/${value.ms_schedule_id}`,
+        {
+          status: !value.status
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(response.data);
+      successNotify("Berhasil Ubah status")
+      servicefetchAll(); // Re-fetch data after update
+    } catch (error) {
+      console.log("Error updating schedule", error);
+      if (error.response?.status === 401) {
+        errorNotify("Access Denied");
+      }
+      if (error.response?.status === 404) {
+        errorNotify("Data not found");
+      } else {
+        errorNotify("An error occurred while updating the schedule");
+      }
+    }
+  };
+
 
   const handleDaySelected = (valueDay) => {
+    console.log(valueDay);
     setDaySelected(valueDay);
   };
-
-  const toggleSchedule = (index) => {
-    setSchedule((prev) => prev.map((item, i) => (i === index ? !item : item)));
+  const handleSwitch = (value) => {
+    serviceUpdate(value)
   };
 
+  useEffect(() => {
+    servicefetchAll();
+  }, [daySelected]);
+
   return (
-    <div
+    <motion.div
       className="vh-100 flex-grow-1 d-flex justify-content-center align-items-center"
       style={{ backgroundColor: colors.background }}
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      // className="dropdown-menu show position-absolute end-0 mt-2 shadow bg-white rounded d-grid"
+      // style={{ width: "400px", position: "relative" }}
     >
+      <ToastContainer />
       <div
-        className=" bg-white shadow-lg d-flex flex-column"
+        className="bg-white shadow-lg d-flex flex-column"
         style={{
           width: "95%",
           height: "95%",
@@ -27,7 +111,7 @@ function Jadwal({ title = "Jadwal" }) {
           padding: "20px",
         }}
       >
-        {/* ✅ Container Tombol Hari */}
+        {/* Container Tombol Hari */}
         <div
           className="d-flex justify-content-center align-items-center flex-wrap"
           style={{
@@ -46,8 +130,7 @@ function Jadwal({ title = "Jadwal" }) {
                   border: `2px solid ${colors.primary}`,
                   color: item === daySelected ? "white" : colors.primary,
                   fontWeight: "bold",
-                  backgroundColor:
-                    item === daySelected ? colors.primary : "transparent",
+                  backgroundColor: item === daySelected ? colors.primary : "transparent",
                   cursor: "pointer",
                   transition: "0.3s ease-in-out",
                 }}
@@ -64,8 +147,6 @@ function Jadwal({ title = "Jadwal" }) {
             )
           )}
         </div>
-
-        {/* ✅ Container List Jadwal */}
         <div
           className="flex-grow-1 p-4 overflow-auto"
           style={{
@@ -74,9 +155,9 @@ function Jadwal({ title = "Jadwal" }) {
             padding: "20px",
           }}
         >
-          {Array.from({ length: 13 }, (_, i) => i + 8).map((hour, index) => (
+          {dataJadwal.map((i, j) => (
             <div
-              key={index}
+              key={j}
               className="d-flex justify-content-between align-items-center mb-3 p-3 rounded shadow-sm"
               style={{
                 backgroundColor: "white",
@@ -86,22 +167,17 @@ function Jadwal({ title = "Jadwal" }) {
                 border: "1px solid #ddd",
               }}
               onMouseEnter={(e) =>
-                (e.currentTarget.style.boxShadow =
-                  "0 4px 10px rgba(0,0,0,0.15)")
+                (e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.15)")
               }
               onMouseLeave={(e) =>
                 (e.currentTarget.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)")
               }
             >
               <span style={{ marginLeft: "20px" }}>
-                {`${hour}:00 - ${hour + 1}:00`}
+                {`${i.jam_awal} - ${i.jam_akhir}`}
               </span>
               <label className="switch" style={{ marginRight: "20px" }}>
-                <input
-                  type="checkbox"
-                  checked={schedule[index]}
-                  onChange={() => toggleSchedule(index)}
-                />
+                <input type="checkbox" checked={i.status} onChange={() => { handleSwitch(i) }} />
                 <span className="slider"></span>
               </label>
             </div>
@@ -109,55 +185,50 @@ function Jadwal({ title = "Jadwal" }) {
 
           <style>
             {`
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 40px;
-      height: 20px;
-    }
-    
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-    
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: 0.3s;
-      border-radius: 20px;
-    }
-    
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 14px;
-      width: 14px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.3s;
-      border-radius: 50%;
-    }
-    
-    input:checked + .slider {
-      background-color: #4CAF50;
-    }
-    
-    input:checked + .slider:before {
-      transform: translateX(20px);
-    }
-  `}
+              .switch {
+                position: relative;
+                display: inline-block;
+                width: 40px;
+                height: 20px;
+              }
+              .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+              }
+              .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #ccc;
+                transition: 0.3s;
+                border-radius: 20px;
+              }
+              .slider:before {
+                position: absolute;
+                content: "";
+                height: 14px;
+                width: 14px;
+                left: 3px;
+                bottom: 3px;
+                background-color: white;
+                transition: 0.3s;
+                border-radius: 50%;
+              }
+              input:checked + .slider {
+                background-color: #4CAF50;
+              }
+              input:checked + .slider:before {
+                transform: translateX(20px);
+              }
+            `}
           </style>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

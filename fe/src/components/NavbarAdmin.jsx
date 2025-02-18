@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import colors from "../helper/colors";
 
 const AdminLayout = () => {
-  const [isHovered, setIsHovered] = useState(false);
+  const [isHovered, setIsHovered] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSelected, setIsSelected] = useState(null);
   const navigate = useNavigate();
@@ -36,7 +36,8 @@ const AdminLayout = () => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
         // setIsSelected(null);
-        setIsHovered(true);
+        setIsSelected(null);
+        // setIsHovered(false);
       }}
     >
       <div style={{ marginBottom: "40px" }}></div>
@@ -270,11 +271,11 @@ const AdminLayout = () => {
             className="btn btn-danger"
             style={{
               marginTop: "100px",
-              marginLeft:"2px",
+              marginLeft:"16px",
               // padding: "10px",
               fontWeight: "bold",
-              backgroundColor: colors.background,
-              color: colors.primary,
+              backgroundColor: colors.bg_2,
+              color: "red",
               border: "none",
               borderRadius: "4px",
               display: isHovered ? "inline" : "none"

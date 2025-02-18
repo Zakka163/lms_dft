@@ -1,5 +1,7 @@
 import { useState } from "react";
 import colors from "../../helper/colors";
+import edit from "../../assets/edit.png";
+import add from "../../assets/add.png";
 
 function Kategori() {
   const [categories, setCategories] = useState([
@@ -21,34 +23,43 @@ function Kategori() {
 
   const addCategory = () => {
     if (newCategory.trim()) {
-      setCategories([...categories, { name: newCategory, subcategories: [] }]);
+      setCategories((prevCategories) => [
+        ...prevCategories,
+        { name: newCategory, subcategories: [] },
+      ]);
       setNewCategory("");
     }
   };
 
   const addSubCategory = (categoryIndex) => {
     if (newSubCategory.trim()) {
-      const updatedCategories = [...categories];
-      updatedCategories[categoryIndex].subcategories.push(newSubCategory);
-      setCategories(updatedCategories);
+      setCategories((prevCategories) => {
+        const updatedCategories = [...prevCategories];
+        updatedCategories[categoryIndex].subcategories.push(newSubCategory);
+        return updatedCategories;
+      });
       setNewSubCategory("");
       setIsAddingSub(null);
     }
   };
 
   const editSubCategory = (categoryIndex, subIndex, newSubName) => {
-    const updatedCategories = [...categories];
-    updatedCategories[categoryIndex].subcategories[subIndex] = newSubName;
-    setCategories(updatedCategories);
+    setCategories((prevCategories) => {
+      const updatedCategories = [...prevCategories];
+      updatedCategories[categoryIndex].subcategories[subIndex] = newSubName;
+      return updatedCategories;
+    });
     setEditingSub(null);
   };
 
   const deleteSubCategory = () => {
     if (deleteConfirm) {
       const { categoryIndex, subIndex } = deleteConfirm;
-      const updatedCategories = [...categories];
-      updatedCategories[categoryIndex].subcategories.splice(subIndex, 1);
-      setCategories(updatedCategories);
+      setCategories((prevCategories) => {
+        const updatedCategories = [...prevCategories];
+        updatedCategories[categoryIndex].subcategories.splice(subIndex, 1);
+        return updatedCategories;
+      });
       setDeleteConfirm(null);
     }
   };
@@ -60,65 +71,66 @@ function Kategori() {
   );
 
   return (
-    <div className="vh-100 flex-grow-1 d-flex justify-content-center align-items-center" style={{ backgroundColor: colors.background, minHeight: "100vh" }}>
-      <div className="card shadow-lg p-4" style={{
-          width: "95%",
-          height: "95%",
-          borderRadius: "15px",
-          padding: "20px",
-        }}>
-        <h4 className="text-center text-primary">Manajemen Kategori</h4>
-
-        {/* 🔍 Search Bar */}
-        <input
-          type="text"
-          className="form-control mt-3"
-          placeholder="Cari kategori atau sub-kategori..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-
-        {/* ➕ Tambah Kategori */}
-        <div className="d-flex mt-3">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Nama kategori baru"
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-          />
-          <button className="btn btn-success mx-2" onClick={addCategory}>
-            Tambah
-          </button>
-        </div>
-
-        {/* 📂 List Kategori */}
-        <div className="mt-4">
+    <div
+      className="border border-warning vh-100 flex-grow-1 d-flex justify-content-center align-items-center"
+      style={{ backgroundColor: colors.background, minHeight: "100vh" }}
+    >
+      <div
+        className=" card shadow-lg p-4"
+        style={{ width: "95%", height: "95%", borderRadius: "15px", padding: "20px" }}
+      >
+        <div className="" style={{ height: "35px" }}></div>
+        <div className="mt-2">
           {filteredCategories.length === 0 ? (
             <p className="text-muted text-center">Tidak ada kategori</p>
           ) : (
             filteredCategories.map((category, index) => (
               <div key={index} className="mb-3">
-                {/* Kategori Header */}
                 <div
-                  className="d-flex justify-content-between align-items-center p-3 bg-light rounded shadow-sm"
+                  className=" d-flex  align-items-center p-3 bg-light rounded shadow-sm"
                   style={{ cursor: "pointer" }}
                   onClick={() => toggleCategory(category.name)}
                 >
-                  <span className="fw-bold">{category.name}</span>
-                  <div>
-                    <button className="btn btn-sm btn-info mx-1">
-                      {expandedCategory === category.name ? "Tutup" : "Detail"}
-                    </button>
-                    <button className="btn btn-sm btn-success mx-1" onClick={() => setIsAddingSub(index)}>
-                      + Sub
-                    </button>
+                  <div className="border border-danger" style={{marginRight:"600px", width:"200px"}}>
+                    <span className="" style={{ marginRight: "10px", fontSize: "10px" }}>
+                      {expandedCategory === category.name ? "▲" : "▼"}
+                    </span>
+                    <span className="fw-bold" style={{ width: "200px" }}>{category.name}</span>
+                  </div>
+                  <div className="d-flex gap-3">
+                    <img
+                      src={add}
+                      alt="add"
+                      style={{
+                        width: "22px",
+                        height: "22px",
+                        objectFit: "contain",
+                        cursor: "pointer",
+                        marginTop: "4px"
+                      }}
+                    />
+                    <img
+                      src={edit}
+                      alt="edit"
+                      style={{
+                        width: "25px",
+                        height: "25px",
+                        objectFit: "contain",
+                        cursor: "pointer",
+                      }}
+                    />
                   </div>
                 </div>
 
-                {/* Sub-Kategori (Dropdown) */}
+                {/* Subcategories */}
                 {expandedCategory === category.name && (
-                  <div className="p-2 mt-2 bg-white rounded shadow-sm">
+                  <div
+                    className="p-2 bg-white border-bottom shadow-sm"
+                    style={{
+                      borderBottomLeftRadius: "10px",
+                      borderBottomRightRadius: "10px",
+                    }}
+                  >
                     {category.subcategories.length > 0 ? (
                       category.subcategories.map((sub, subIndex) => (
                         <div key={subIndex} className="d-flex justify-content-between align-items-center p-2">
@@ -166,7 +178,7 @@ function Kategori() {
                   </div>
                 )}
 
-                {/* ➕ Form Tambah Sub-Kategori */}
+                {/* Form Tambah Sub-Kategori */}
                 {isAddingSub === index && (
                   <div className="d-flex mt-2">
                     <input
@@ -190,7 +202,6 @@ function Kategori() {
         </div>
       </div>
 
-      {/* 🗑️ Modal Floating Konfirmasi Hapus */}
       {deleteConfirm && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"

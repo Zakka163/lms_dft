@@ -3,7 +3,8 @@
     "build": "npx tsc",
     "start": "node dist/app.js",
     "dev": "nodemon",
-    "sync": "node dist/config/dbsync.js"
+    "sync": "node dist/config/dbsync.js",
+    "seed": "node dist/seeder/index.js"
   },
   "type": "module",
   "dependencies": {

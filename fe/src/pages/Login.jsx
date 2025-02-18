@@ -38,8 +38,13 @@ const Login = () => {
       localStorage.setItem("token", response.data.token);
       navigate("/auth-success")
     } catch (err) {
-      console.error("Login Error:", err);
-      errorNotify("Password atau username salah")
+      console.error("Login Error:", err.code);
+      if (err.code == "ERR_NETWORK") {
+        errorNotify("ERR_NETWORK")
+      } else {
+        errorNotify("Password atau Email salah")
+      }
+
     } finally {
       setLoading(false);
     }
