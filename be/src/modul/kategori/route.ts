@@ -5,7 +5,7 @@ import { authMiddleware,authorizationMiddleware } from '../../middleware/authMid
 const RouterKategori = Router();
 
 RouterKategori.post('/add', authMiddleware,authorizationMiddleware("admin"),KategoriController.add);
-RouterKategori.post('/edit',authMiddleware,authorizationMiddleware("admin"), KategoriController.edit);
+RouterKategori.post('/edit/:id',authMiddleware,authorizationMiddleware("admin"), KategoriController.edit);
 RouterKategori.get('/list',authMiddleware,authorizationMiddleware("admin"), KategoriController.list);
 
 

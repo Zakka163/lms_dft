@@ -5,8 +5,8 @@ import { authMiddleware,authorizationMiddleware } from '../../middleware/authMid
 const RouterSubKategori = Router();
 
 RouterSubKategori.post('/add', authMiddleware,authorizationMiddleware("admin"),subKategoriController.add);
-RouterSubKategori.post('/edit',authMiddleware,authorizationMiddleware("admin"), subKategoriController.edit);
+RouterSubKategori.post('/edit/:id',authMiddleware,authorizationMiddleware("admin"), subKategoriController.edit);
 RouterSubKategori.get('/list',authMiddleware,authorizationMiddleware("admin"), subKategoriController.list);
-
+RouterSubKategori.post('/edit/:id',authMiddleware,authorizationMiddleware("admin"), subKategoriController.edit);
 
 export default RouterSubKategori;
