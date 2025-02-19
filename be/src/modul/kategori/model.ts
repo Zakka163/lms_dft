@@ -2,7 +2,7 @@ import { DataTypes, Model } from "sequelize";
 import { sq } from "../../config/connection.js";
 
 class kategori extends Model {
-    public ms_schedule_id!: number;
+    public kategori_id!: number;
     public name!: string;
 }
 
