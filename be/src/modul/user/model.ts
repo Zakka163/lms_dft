@@ -1,7 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 import { sq } from "../../config/connection.js";
 
-class User extends Model {
+class user extends Model {
   public user_id!: number;
   public nama!: string;
   public password!: string;
@@ -12,7 +12,7 @@ class User extends Model {
   public poin!: number;
 }
 
-User.init(
+user.init(
   {
     user_id: {
       type: DataTypes.INTEGER,
@@ -56,11 +56,11 @@ User.init(
   },
   {
     sequelize: sq,
-    modelName: "User",
-    tableName: "User",
+    modelName: "user",
+    tableName: "user",
     timestamps: true,
     paranoid: true, 
   }
 );
 
-export default User;
+export default user;

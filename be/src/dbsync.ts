@@ -1,4 +1,4 @@
-import {sq} from "./connection.js"
+import {sq} from "./config/connection.js"
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs/promises";
@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 (async () => {
   try {
-    const normalizedPath = path.join(__dirname, "../modul");
+    const normalizedPath = path.join(__dirname, "./modul");
     const folder1 = await fs.readdir(normalizedPath);
 
     for (const folder of folder1) {
@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 
       for (const file of files) {
         if (file === "model.js" || file === "model.ts") {
-          await import(`../modul/${folder}/model.js`);
+          await import(`./modul/${folder}/model.js`);
         }
       }
     }

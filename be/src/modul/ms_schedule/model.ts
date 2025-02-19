@@ -1,7 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 import { sq } from "../../config/connection.js";
 
-class MsSchedule extends Model {
+class ms_schedule extends Model {
   public ms_schedule_id!: number;
   public hari!: string;
   public jam_awal!: string;
@@ -9,7 +9,7 @@ class MsSchedule extends Model {
   public status!: boolean;
 }
 
-MsSchedule.init(
+ms_schedule.init(
   {
     ms_schedule_id: {
       type: DataTypes.INTEGER,
@@ -36,11 +36,11 @@ MsSchedule.init(
   },
   {
     sequelize: sq,
-    modelName: "MsSchedule",
+    modelName: "ms_schedule",
     tableName: "ms_schedule",
     timestamps: true,
     paranoid: true, 
   }
 );
 
-export default MsSchedule;
+export default ms_schedule;
