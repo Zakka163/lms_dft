@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import kategori from "./model.js";
+import SubKategori from "../sub_kategori/model.js";
 
 class KategoriController {
-    static async list(req: Request , res: Response): Promise<any> {
+    static async list(req: Request, res: Response): Promise<any> {
         try {
-            const categories = await kategori.findAll();
+            const categories = await kategori.findAll({ include: SubKategori });
             res.status(200).json({ success: true, data: categories });
         } catch (error: any) {
             res.status(500).json({ success: false, message: error?.message || "Terjadi kesalahan" });

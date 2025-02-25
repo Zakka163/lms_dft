@@ -50,8 +50,8 @@ class subKategoriController {
                 return res.status(404).json({ success: false, message: "Kategori tidak ditemukan" });
             }
 
-            await sub_kategori.destroy({ where: { id } });
-            res.status(200).json({ success: true  });
+            await sub_kategori.destroy({ where: { sub_kategori_id: id } });
+            res.status(200).json({ success: true });
         } catch (error: any) {
             res.status(500).json({ success: false, message: error?.message || "Terjadi kesalahan" });
         }

@@ -5,29 +5,30 @@ import express, { Request, Response } from 'express';
 import router from "./routes.js";
 import bcrypt from "bcrypt"
 import cors from "cors"
+import { seedSchedules } from "./seeder/ms_schedule.js";
 const app = express();
 const PORT = 5000;
 testConnection()
-// async function seedData() {
-//     try {
-//         const salt = await bcrypt.genSalt(10);
-//         const passwrodhash = await bcrypt.hash("123", salt);
-//         await UserService.createUser({
-//             user_id: 1,
-//             nama: "admin",
-//             password: passwrodhash,
-//             email: "m@gmail.com",
-//             kelamin: "L",
-//             nomor_telpon: "0861673",
-//             role: "siswa",
-//             poin: 0
-//         })
-//     } catch (error) {
-//         console.log(error);
+async function seedData() {
+    try {
+        const salt = await bcrypt.genSalt(10);
+        const passwrodhash = await bcrypt.hash("123", salt);
+        await UserService.createUser({
+            user_id: 1,
+            nama: "admin",
+            password: passwrodhash,
+            email: "m@gmail.com",
+            kelamin: "L",
+            nomor_telpon: "0861673",
+            role: "siswa",
+            poin: 0
+        })
+    } catch (error) {
+        console.log(error);
 
-//     }
-// }
-
+    }
+}
+seedSchedules()
 // seedData()
 app.use(cors({
     origin: "*", // Mengizinkan semua origin
