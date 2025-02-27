@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import colors from "../../helper/colors";
 import { ToastContainer } from "react-toastify";
 import { motion } from "framer-motion";
@@ -44,8 +44,8 @@ const Kategori = () => {
 
   // service fetch
   let token = localStorage.getItem("token");
-
-  const serviceGetCategory = async () => {
+  
+  const serviceGetCategory = useCallback(async () => {
     try {
       const response = await axios.get(
         `${config.APIURL}/kategori/list`,
@@ -66,10 +66,11 @@ const Kategori = () => {
         errorNotify("Data not found");
       }
     }
-  }
+  }, []);
+
   const serviceAddCategory = async (data) => {
     try {
-      const response = await axios.post(
+      await axios.post(
         `${config.APIURL}/kategori/add`,
         data,
         {
@@ -93,7 +94,7 @@ const Kategori = () => {
   };
   const serviceEditCategory = async (id, data) => {
     try {
-      const response = await axios.post(
+      await axios.post(
         `${config.APIURL}/kategori/edit/${id}`,
         data,
         {
@@ -118,7 +119,7 @@ const Kategori = () => {
   const serviceAddSubCategory = async (data) => {
     console.log("🚀 ~ serviceAddSubCategory ~ data:", data)
     try {
-      const response = await axios.post(
+      await axios.post(
         `${config.APIURL}/sub_kategori/add`,
         data,
         {
@@ -143,7 +144,7 @@ const Kategori = () => {
   const serviceEditSubCategory = async (id, data) => {
     console.log("🚀 ~ serviceAddSubCategory ~ data:", data)
     try {
-      const response = await axios.post(
+      await axios.post(
         `${config.APIURL}/sub_kategori/edit/${id}`,
         data,
         {
@@ -192,7 +193,7 @@ const Kategori = () => {
 
   useEffect(() => {
     serviceGetCategory()
-  }, [refresh])
+  }, [refresh, serviceGetCategory])
 
 
 
