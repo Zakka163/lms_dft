@@ -3,12 +3,13 @@ import { Request, Response } from 'express';
 import User from '../user/model.js';
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt"
+console.log(`${process.env.URL_FRONTEND}/auth/google/callback`);
 
 
 const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.SESSION_SECRET,
-    `${process.env.URL_FRONTEND}/auth/google/callback` ||"http://localhost:5000/auth/google/callback" 
+   "http://localhost:5000/auth/google/callback" 
 );
 
 const scopes = [
@@ -30,6 +31,7 @@ interface Payload {
 
 export const controllerLoginGoogle = async (req: Request, res: Response): Promise<void> => {
     try {
+        console.log("🚀 ~ controllerLoginGoogle ~ googleAuthUrl:", googleAuthUrl)
         res.redirect(googleAuthUrl);
     } catch (error) {
         res.status(500).json({ message: "Error during Google authentication", error });
@@ -92,6 +94,7 @@ export const controllerlogin = async (req: Request, res: Response): Promise<any>
         if (!existingUser) {
             return res.status(404).json({ message: "No user data found" });
         }
+        console.log("🚀 ~ controllerlogin ~ existingUser:", existingUser)
         const isMatch = await bcrypt.compare(password, existingUser.dataValues.password);
         if (!isMatch) {
             return res.status(401).json({ message: 'Username atau password salah' });

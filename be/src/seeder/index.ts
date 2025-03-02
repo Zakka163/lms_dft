@@ -1,3 +1,4 @@
 import { seedSchedules } from "./ms_schedule.js";
-
-// seedSchedules()
+import { seedData } from "./user.js";
+seedData()
+seedSchedules()
