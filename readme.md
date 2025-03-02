@@ -23,7 +23,7 @@ Script ini mengotomatisasi proses deployment untuk aplikasi backend dan frontend
      cp .env.example .env
      ```
 
-4. **Instal dependensi dan bangun backend**
+4. ** Instal dependensi dan bangun backend**
 
    ```sh
    npm install
