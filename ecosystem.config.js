@@ -2,9 +2,9 @@ module.exports = {
     apps: [
         {
             name: "backend",
-            script: "node ./be/dist/app.js",
+            script: "node ./dist/app.js",
             cwd: "./be",
-            pre_start: "npm run build", 
+            // pre_start: "npm run build", 
         },
         {
             name: "frontend",
