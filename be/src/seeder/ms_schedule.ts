@@ -5,9 +5,9 @@ type Schedule = {
     jam_awal: string;
     jam_akhir: string;
     status: boolean;
-}
+};
 
-let data: Schedule[] = new Array();
+let data: Schedule[] = [];
 
 const dummySchedules = [
     { jam_awal: "07:00", jam_akhir: "08:00", status: true },
@@ -35,15 +35,27 @@ for (let i = 0; i < hari.length; i++) {
 
 export const seedSchedules = async () => {
     try {
-        if (data.length > 0) {
-            console.log("Inserting data:", data);
-            await MsSchedule.bulkCreate(data);
+        await MsSchedule.destroy({ where: {} });
+        const existingSchedules = await MsSchedule.findAll({
+            attributes: ["hari", "jam_awal", "jam_akhir"],
+        });
+
+        const existingSet = new Set(
+            existingSchedules.map(
+                (schedule) => `${schedule.hari}-${schedule.jam_awal}-${schedule.jam_akhir}`
+            )
+        );
+        const newData = data.filter(
+            (schedule) => !existingSet.has(`${schedule.hari}-${schedule.jam_awal}-${schedule.jam_akhir}`)
+        );
+
+        if (newData.length > 0) {
+            await MsSchedule.bulkCreate(newData);
             console.log("Dummy schedules inserted successfully");
         } else {
-            console.log("No data to insert");
+            console.log("All schedules already exist, no data inserted");
         }
     } catch (error) {
         console.error("Error inserting dummy schedules:", error);
     }
 };
-

@@ -1,5 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import { sq } from "../../config/connection.js";
+import Gambar from "../gambar/model.js";
 
 class user extends Model {
   public user_id!: number;
@@ -63,4 +64,6 @@ user.init(
   }
 );
 
+Gambar.hasMany(user, { foreignKey: "gambar_id"});
+user.belongsTo(Gambar, { foreignKey: "gambar_id"});
 export default user;

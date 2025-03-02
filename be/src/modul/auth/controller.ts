@@ -3,13 +3,14 @@ import { Request, Response } from 'express';
 import User from '../user/model.js';
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt"
+import Gambar from "../gambar/model.js";
 console.log(`${process.env.URL_FRONTEND}/auth/google/callback`);
 
 
 const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.SESSION_SECRET,
-   "http://localhost:5000/auth/google/callback" 
+    "http://localhost:5000/auth/google/callback"
 );
 
 const scopes = [
@@ -20,13 +21,14 @@ const scopes = [
 const googleAuthUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: scopes,
-    prompt:"select_account"
+    prompt: "select_account"
 });
 
 interface Payload {
     user_id: string;
     nama: string;
     role: string;
+    picture: string;
 }
 
 export const controllerLoginGoogle = async (req: Request, res: Response): Promise<void> => {
@@ -55,28 +57,45 @@ export const controllerCallbackAuthGoogle = async (req: Request, res: Response):
 
         const { data } = await oauth2.userinfo.get();
 
+        console.log("🚀 ~ controllerCallbackAuthGoogle ~ data:", data)
         if (!data) {
             return res.status(404).json({ message: "No user data found" });
         }
-        const existingUser = await User.findOne({ where: { email: data.email } });
+        const existingUser = await User.findOne({
+            where: { email: data.email },
+            include: [
+                {
+                    model: Gambar,
+                    required: false,
+                },
+            ],
+        });
+        console.log("🚀 ~ controllerCallbackAuthGoogle ~ existingUser:", existingUser?.dataValues.gambar.dataValues)
 
-        let payload: Payload = { user_id: "", nama: "", role: "" };
+
+        let payload: Payload = { user_id: "", nama: "", role: "", picture: "" };
 
         if (!existingUser) {
+            const newGambar = await Gambar.create({
+                url: data.picture
+            })
             const newUser = await User.create({
                 email: data.email,
                 nama: data.name,
                 role: "siswa",
-                password: "-"
+                password: "-",
+                gambar_id: newGambar.dataValues.gambar_id
             });
 
             payload.user_id = newUser.dataValues.user_id;
             payload.nama = newUser.dataValues.nama;
             payload.role = newUser.dataValues.role;
+            payload.picture = newGambar.dataValues.url ? newGambar.dataValues.url : ""
         } else {
             payload.user_id = existingUser.dataValues.user_id;
             payload.nama = existingUser.dataValues.nama;
             payload.role = existingUser.dataValues.role;
+            payload.picture = existingUser?.dataValues.gambar.dataValues.url ? existingUser?.dataValues.gambar.dataValues.url : ""
         }
         const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '1h' });
         res.redirect(`${process.env.URL_FRONTEND}/auth-success?token=${token}`);
@@ -90,7 +109,15 @@ export const controllerCallbackAuthGoogle = async (req: Request, res: Response):
 export const controllerlogin = async (req: Request, res: Response): Promise<any> => {
     try {
         const { email, password } = req.body
-        const existingUser = await User.findOne({ where: { email: email } });
+        const existingUser = await User.findOne({
+            where: { email: email },
+            include: [
+                {
+                    model: Gambar,
+                    required: false,
+                },
+            ],
+        });
         if (!existingUser) {
             return res.status(404).json({ message: "No user data found" });
         }
@@ -99,7 +126,7 @@ export const controllerlogin = async (req: Request, res: Response): Promise<any>
         if (!isMatch) {
             return res.status(401).json({ message: 'Username atau password salah' });
         }
-        const token = jwt.sign({ user_id: existingUser.dataValues.user_id, nama: existingUser.dataValues.nama, role: existingUser.dataValues.role }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+        const token = jwt.sign({ user_id: existingUser.dataValues.user_id, nama: existingUser.dataValues.nama, role: existingUser.dataValues.role, picture: existingUser?.dataValues.gambar ? existingUser?.dataValues.gambar.dataValues.url : "" }, process.env.JWT_SECRET!, { expiresIn: '1h' });
         res.json({ token, role: existingUser.dataValues.role });
     } catch (error) {
         console.log(error);

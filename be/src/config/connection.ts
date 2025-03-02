@@ -12,11 +12,11 @@ const __dirname = path.dirname(__filename);
 dotenv.config({
   path: path.resolve(__dirname, "../../.env"),
 });
-console.log("Current working directory:", process.cwd());
+// console.log("Current working directory:", process.cwd());
 
-console.log("Current file path:", __filename);
-console.log("Current directory path:", __dirname);
-console.log("🚀 ~ process.env.DATABASE_NAME:", process.env.DATABASE_NAME)
+// console.log("Current file path:", __filename);
+// console.log("Current directory path:", __dirname);
+// console.log("🚀 ~ process.env.DATABASE_NAME:", process.env.DATABASE_NAME)
 
 const sq = new Sequelize(process.env.DATABASE_NAME as string, process.env.USERNAME as string , process.env.PASSWORD, {
   host: "localhost",
