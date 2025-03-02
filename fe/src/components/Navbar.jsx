@@ -1,15 +1,22 @@
 import colors from "../helper/colors";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import notif from "../assets/bell.png";
 import logo from "../assets/logo.png";
+import defaultPicture from "../assets/loginPic.png";
 import NotificationCard from "./NotificationCard";
 import { FaClock, FaVideo, FaGraduationCap, FaBook } from "react-icons/fa";
 import { DetailUserCard } from "./DetailUserCard";
+import { jwtDecode } from "jwt-decode";
+import axios from "axios";
+import { config } from "../config";
+import { errorNotify } from "../helper/toast";
 const Navbar = () => {
   const [activeIndex, setActiveIndex] = useState(null);
   const [showNotif, setShowNotif] = useState(true);
   const [showUser, setShowUser] = useState(true);
+  const [picture, setPicture] = useState("");
+  const [userProfileData, setUserProfileData] = useState({});
   const [notificationsData, setNotificationsData] = useState([
     { id: 1, icon: <FaClock />, time: "9m", unread: true },
     { id: 2, icon: <FaVideo />, time: "23m", unread: false },
@@ -32,19 +39,62 @@ const Navbar = () => {
   const handleclickNotif = () => {
     setShowUser(true)
     setShowNotif(!showNotif)
-    
+
   }
   const handleclickProfile = () => {
     setShowNotif(true)
     setShowUser(!showUser)
   }
   const token = localStorage.getItem("token");
+  const serviceGetUsery = useCallback(async (id) => {
+    try {
+      const response = await axios.get(
+        `${config.APIURL}/user/user/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      setUserProfileData(response.data.data)
+      console.log("🚀 ~ serviceGetUsery ~ response.data.data:", response.data)
+      console.log("🚀 ~ serviceGetUsery ~ userProfileData:", userProfileData)
+
+    } catch (error) {
+      console.log("Error fetching schedule", error);
+      if (error.response?.status === 401) {
+        errorNotify("Access Denied");
+      }
+      if (error.response?.status === 404) {
+        errorNotify("Data not found");
+      }
+    }
+
+
+  }, []);
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    console.log("Token:", storedToken);
+
+    if (storedToken) {
+      const dataUser = jwtDecode(storedToken);
+      console.log("🚀 ~ useEffect ~ dataUser:", dataUser.picture);
+      console.log(dataUser);
+      serviceGetUsery(dataUser.user_id)
+      if (dataUser.picture) {
+        setPicture(dataUser.picture);
+      }
+    }
+
+  }, []);
+
   return (
     <nav
       className="navbar navbar-expand-lg shadow-sm bg-white border-bottom fixed-top"
       style={{ height: "50px" }}
     >
-      {showUser ? <></> : <div className="position-fixed top-0 end-0" style={{ marginTop: "34px", marginRight: "20px" }}> <DetailUserCard user={userData} /></div>}
+      {showUser ? <></> : <div className="position-fixed top-0 end-0" style={{ marginTop: "34px", marginRight: "20px" }}> <DetailUserCard user={userProfileData} /></div>}
       {showNotif ? <></> : <NotificationCard notifications={notificationsData} />}
       <div className="container-fluid px-4 d-flex align-items-center">
         <img
@@ -89,35 +139,36 @@ const Navbar = () => {
 
         {/* Search dan Button */}
         <div className="d-flex align-items-center gap-3">
-          <form className="d-flex position-relative">
-            <input
-              className="form-control rounded-pill ps-5"
-              type="search"
-              placeholder="Search anything..."
-              aria-label="Search"
-              style={{
-                height: "28px",
-                width: "280px",
-                border: `1.5px solid ${colors.primary}`,
-              }}
-            />
-            <span className="position-absolute start-0 ms-3 text-muted">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                fill="currentColor"
-                viewBox="0 0 16 16"
-              >
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.615.656a5 5 0 1 1 3.536-1.464A5 5 0 0 1 6.127 11z" />
-              </svg>
-            </span>
-          </form>
+
 
           {/* Tombol Masuk & Daftar */}
 
           {token ? (
             <>
+              <form className="d-flex position-relative">
+                <input
+                  className="form-control rounded-pill ps-5"
+                  type="search"
+                  placeholder="Search anything..."
+                  aria-label="Search"
+                  style={{
+                    height: "28px",
+                    width: "280px",
+                    border: `1.5px solid ${colors.primary}`,
+                  }}
+                />
+                <span className="position-absolute start-0 ms-3 text-muted">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    fill="currentColor"
+                    viewBox="0 0 16 16"
+                  >
+                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.615.656a5 5 0 1 1 3.536-1.464A5 5 0 0 1 6.127 11z" />
+                  </svg>
+                </span>
+              </form>
               <img
                 src={notif}
                 alt="Profile"
@@ -138,7 +189,7 @@ const Navbar = () => {
                 Kursus Saya
               </button>
               <img
-                src="https://www.w3schools.com/w3images/avatar2.png"
+                src={picture ? picture : defaultPicture}
                 alt="Profile"
                 className="rounded-circle"
                 style={{

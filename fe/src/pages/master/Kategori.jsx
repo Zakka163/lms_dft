@@ -331,7 +331,7 @@ const Kategori = () => {
   return (
     <motion.div className="vh-100 flex-grow-1 d-flex justify-content-center align-items-center" style={{ backgroundColor: colors.background }} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3, ease: "easeOut" }} >
       <ToastContainer />
-      <div className=" bg-white shadow-lg d-flex flex-column" style={{ width: "95%", height: "95%", borderRadius: "15px", padding: "20px", }}>
+      <div className=" bg-white shadow-lg d-flex flex-column" style={{ width: "95%", height: "95%", borderRadius: "10px", padding: "20px", }}>
 
         <div className="d-flex justify-content-between mb-3">
           <h4></h4>
@@ -364,7 +364,7 @@ const Kategori = () => {
           {
             categories.map((i) => (
 
-              <div key={i.id} className="border rounded p-2 mb-3" style={{ borderColor: colors.primary, borderWidth: "2px", borderStyle: "solid" }}>
+              <div key={i.id} className="border rounded shadow-sm p-2 mb-3" style={{ borderColor: colors.primary, borderWidth: "2px", borderStyle: "solid" }}>
                 <div className="d-flex justify-content-between align-items-center">
                   {
                     i.isEditing ?

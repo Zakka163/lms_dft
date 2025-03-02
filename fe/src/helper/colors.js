@@ -5,7 +5,8 @@ const colors = {
     text: "white",
     bg_1:"#D9D9D9",
     bg_2:"#FFFFFF",
-    bg_3:"#F6F6F6"
+    bg_3:"#F6F6F6",
+    bg_4:"#EEEEEE"
   };
   
   export default colors;

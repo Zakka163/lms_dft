@@ -1,0 +1,32 @@
+sebelum run 
+
+" git pull "
+
+
+
+masuk masuk ke folder  be atau ketik di terminal "cd be"
+kemudian
+
+
+copy isi di .env.example ke file .env
+
+
+
+" npm install "
+" npm run build " lalu
+" npm run sync " lalu
+" npm run seed " 
+
+kemudian balik ke folder parentt atau ketik " cd .. "
+
+masuk masuk ke folder  be atau ketik di terminal "cd fe"
+kemudian
+" npm install "
+
+lalu instll pm2 global 
+"npm i -g pm2"
+kemudian 
+pm2 start ecosystem.config.js
+
+lalu 
+"pm2 monit"

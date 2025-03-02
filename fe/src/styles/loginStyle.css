@@ -27,11 +27,11 @@
 } */
 
 /* Animasi Input Form */
-.form-control {
+/* .form-control {
     transition: all 0.3s ease-in-out;
-}
+} */
 
-.form-control:focus {
+/* .form-control:focus {
     transform: scale(1.05);
     box-shadow: 0px 0px 8px rgba(0, 0, 255, 0.3);
-}
+} */

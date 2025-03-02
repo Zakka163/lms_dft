@@ -107,7 +107,7 @@ function Jadwal() {
         style={{
           width: "95%",
           height: "95%",
-          borderRadius: "15px",
+          borderRadius: "10px",
           padding: "20px",
         }}
       >
@@ -151,7 +151,7 @@ function Jadwal() {
           className="flex-grow-1 p-4 overflow-auto"
           style={{
             borderRadius: "10px",
-            backgroundColor: "#f8f9fa",
+            backgroundColor: colors.bg_2,
             padding: "20px",
           }}
         >

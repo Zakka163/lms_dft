@@ -129,7 +129,7 @@ const AdminLayout = () => {
                 height="13px"
                 className={`me-2 icon-white ${isDropdownOpen ? "rotate" : ""}`}
                 style={{
-                  filter:"invert(1) brightness(2)",
+                  filter: "invert(1) brightness(2)",
                   transition: "transform 0.3s ease-in-out",
                   transform: isDropdownOpen ? "rotate(0deg)" : "rotate(-180deg)",
                 }}
@@ -163,29 +163,6 @@ const AdminLayout = () => {
                 </a>
               </li>
 
-              {/* Poin */}
-              <li className="nav-item">
-                <a
-                  className={`nav-link ${isSelected === "Poin"
-                    ? "text-red-500 bg-white rounded"
-                    : "text-white"
-                    }`}
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleItemClick(true, "Poin", true);
-                  }}
-                  onMouseEnter={() => handleItemClick(true, "Poin", false)}
-                  style={{
-                    backgroundColor: isSelected === "Poin" ? colors.primary : "transparent",
-                    color: isSelected === "Poin" ? colors.primary : colors.text,
-                    textDecoration: "none",
-                    marginLeft: "30px"
-                  }}
-                >
-                  Poin
-                </a>
-              </li>
 
               {/* Kategori */}
               <li className="nav-item">
@@ -232,6 +209,29 @@ const AdminLayout = () => {
                   }}
                 >
                   Kelas
+                </a>
+              </li>
+              {/* Poin */}
+              <li className="nav-item">
+                <a
+                  className={`nav-link ${isSelected === "Poin"
+                    ? "text-red-500 bg-white rounded"
+                    : "text-white"
+                    }`}
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleItemClick(true, "Poin", true);
+                  }}
+                  onMouseEnter={() => handleItemClick(true, "Poin", false)}
+                  style={{
+                    backgroundColor: isSelected === "Poin" ? colors.primary : "transparent",
+                    color: isSelected === "Poin" ? colors.primary : colors.text,
+                    textDecoration: "none",
+                    marginLeft: "30px"
+                  }}
+                >
+                  Poin
                 </a>
               </li>
             </ul>

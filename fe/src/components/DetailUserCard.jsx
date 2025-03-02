@@ -1,13 +1,20 @@
+/* eslint-disable react/prop-types */
 import { FaUserCircle } from "react-icons/fa";
 import { motion } from "framer-motion";
 import colors from "../helper/colors";
-
+import { useEffect } from "react";
+import defaultPicture from "../assets/loginPic.png";
+// eslint-disable-next-line react/prop-types
 export const DetailUserCard = ({ user }) => {
+    console.log("🚀 ~ DetailUserCard ~ user:", user)
+    useEffect(() => {
+        console.log("🚀 ~ DetailUserCard ~ user:", user)
+
+    }, [])
     const handleLogout = () => {
-        localStorage.removeItem("token"); 
-        sessionStorage.removeItem("token"); 
-    
-        window.location.href = "/login"; 
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
+        window.location.href = "/login";
     };
     return (
         <motion.div
@@ -20,15 +27,24 @@ export const DetailUserCard = ({ user }) => {
         >
             {/* Header User */}
             <div className="text-center p-3 border-bottom">
-                <FaUserCircle size={50} color="#ccc" />
-                <h6 className="mt-2 mb-0">{user.name}</h6>
+                <img
+                    src={user.gambar ? user.gambar.url : defaultPicture}
+                    alt="Profile"
+                    className="rounded-circle"
+                    style={{
+                        width: "50px",
+                        height: "50px",
+                        objectFit: "cover",
+                        cursor: "pointer",
+                    }} />
+                <h6 className="mt-2 mb-0">{user.nama}</h6>
                 <small className="text-muted">{user.email}</small>
             </div>
 
             {/* Akun Section */}
             <div className="p-3 border-bottom">
                 <strong className="text-muted d-block mb-2">Akun</strong>
-                {user.accounts.map((acc, index) => (
+                {/* {user.accounts.map((acc, index) => (
                     <div key={index} className="d-flex align-items-center mb-2">
                         <FaUserCircle size={24} color="#aaa" className="me-2" />
                         <div>
@@ -36,7 +52,7 @@ export const DetailUserCard = ({ user }) => {
                             <small className="text-muted">{acc.email}</small>
                         </div>
                     </div>
-                ))}
+                ))} */}
                 <button className="btn btn-danger btn-sm w-100 mt-2">+ Tambahkan Akun</button>
             </div>
 
@@ -49,7 +65,7 @@ export const DetailUserCard = ({ user }) => {
                     <li className="py-1 menu-item"><a href="#" className="text-dark text-decoration-none">Share ke Teman</a></li>
                     <li className="py-1 menu-item"><a href="#" className="text-dark text-decoration-none">Kebijakan Privasi</a></li>
                     <li className="py-1 border-top mt-2 pt-2 menu-item">
-                        <button className="btn text-decoration-none" style={{color:colors.primary}} onClick={handleLogout} >Keluar</button>
+                        <button className="btn text-decoration-none" style={{ color: colors.primary }} onClick={handleLogout} >Keluar</button>
                     </li>
                 </ul>
             </div>
