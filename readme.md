@@ -50,19 +50,25 @@ Script ini mengotomatisasi proses deployment untuk aplikasi backend dan frontend
    npm install
    ```
 
-8. **Instal PM2 secara global**
+8. **Kembali ke direktori utama**
+
+   ```sh
+   cd ..
+   ```
+
+9. **Instal PM2 secara global**
 
    ```sh
    npm i -g pm2
    ```
 
-9. **Jalankan aplikasi menggunakan PM2**
+10. **Jalankan aplikasi menggunakan PM2**
 
    ```sh
    pm2 start ecosystem.config.js
    ```
 
-10. **Pantau proses PM2**
+11. **Pantau proses PM2**
 
     ```sh
     pm2 monit
