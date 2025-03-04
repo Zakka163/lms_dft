@@ -1,14 +1,16 @@
-import search from "../../assets/search-interface-symbol.png";
-import colors from "../../helper/colors";
+
+import search from "../../../assets/search-interface-symbol.png";
+import colors from "../../../helper/colors";
 import { ToastContainer } from "react-toastify";
 import { motion } from "framer-motion";
 import PropTypes from "prop-types";
-const points = [
-    { id: 1, name: "Poin Reward +30 Ketemu Trainer", price: 787000, status: "Aktif" },
-    { id: 2, name: "Poin Reward +30 Ketemu Trainer", price: 787000, status: "Aktif" },
-    { id: 3, name: "Poin Reward +30 Ketemu Trainer", price: 787000, status: "Nonaktif" },
-    { id: 4, name: "Poin Reward +30 Ketemu Trainer", price: 787000, status: "Nonaktif" }
-];
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { config } from "../../../config";
+import { useCallback, useEffect, useState } from "react";
+import { errorNotify } from "../../../helper/toast";
+
+
 
 const formatPrice = (price) => {
     return new Intl.NumberFormat("id-ID", {
@@ -18,33 +20,66 @@ const formatPrice = (price) => {
 };
 
 const PointTable = () => {
+    const [dataPoin, setDataPoin] = useState([]);
+    const navigate = useNavigate();
+    const token = localStorage.getItem("token");
+
+    const serviceGetAllPoin = useCallback(async () => {
+        try {
+            const response = await axios.get(`${config.APIURL}/poin`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            console.log("🚀 ~ serviceGetAllPoin ~ response:", response.data.data);
+            setDataPoin(response.data.data);
+        } catch (error) {
+            console.log("Error fetching poin", error);
+            if (error.response?.status === 401) {
+                errorNotify("Access Denied");
+            }
+            if (error.response?.status === 404) {
+                errorNotify("Data not found");
+            }
+        }
+    }, [token]); // Hanya bergantung pada token
+
+    useEffect(() => {
+        serviceGetAllPoin();
+    }, [serviceGetAllPoin]); // Panggil sekali saat komponen pertama kali dirender
+
     return (
         <div className="container">
             <div className="mt-2">
                 <div className="p-2 row fw-bold border-bottom align-items-center">
-                    <div style={{ width: "6%" }}>No </div>
+                    <div style={{ width: "6%" }}>No</div>
                     <div style={{ width: "35%" }}>Nama Poin</div>
                     <div style={{ width: "29%" }}>Harga</div>
                     <div style={{ width: "20%" }}>Status</div>
                     <div style={{ width: "10%" }}>Opsi</div>
                 </div>
-                {points.map((point, index) => (
-                    <div key={point.id} className="row py-2 border-bottom align-items-center" style={{ height: "60px", backgroundColor: index % 2 == 0 ? colors.bg_4 : colors.bg_3 }}>
-                        <div className="" style={{ width: "6%" }}><div style={{ marginLeft: "5px" }}>{index + 1}</div></div>
-                        <div className="" style={{ width: "35%" }}>{point.name}</div>
-                        <div className="" style={{ width: "29%" }}>{formatPrice(point.price)}</div>
+                {dataPoin.map((point, index) => (
+                    <div key={point.poin_id} className="row py-2 border-bottom align-items-center" style={{ height: "60px", backgroundColor: index % 2 === 0 ? colors.bg_4 : colors.bg_3 }}>
+                        <div className="" style={{ width: "6%" }}>
+                            <div style={{ marginLeft: "5px" }}>{index + 1}</div>
+                        </div>
+                        <div className="" style={{ width: "35%" }}>{point.nama_poin}</div>
+                        <div className="" style={{ width: "29%" }}>{formatPrice(point.harga_diskon)}</div>
                         <div className="" style={{ width: "20%" }}>
-                            <span className={`badge ${point.status === "Aktif" ? "bg-success" : "bg-danger"}`}>
-                                {point.status}
+                            <span className={`badge ${point.status == true ? "bg-success" : "bg-danger"}`}>
+                                {point.status == true ? "aktif" : "non-aktif"}
                             </span>
                         </div>
                         <div className="" style={{ width: "10%" }}>
-                            <button className="btn btn-danger btn-sm">detail</button>
+                            <button className="btn btn-danger btn-sm" onClick={() => navigate(`/admin/master/poin/edit/${point.poin_id}`)}>
+                                detail
+                            </button>
                         </div>
                     </div>
                 ))}
-                {[...Array(10 - points.length)].map((_, i) => (
-                    <div key={`empty-${i}`} className="row py-2 border-bottom align-items-center" style={{ height: "60px", backgroundColor: i % 2 != 0 ? colors.bg_4 : colors.bg_3 }}>
+                {[...Array(10 - dataPoin.length)].map((_, i) => (
+                    <div key={`empty-${i}`} className="row py-2 border-bottom align-items-center" style={{ height: "60px", backgroundColor: i % 2 === 0 ? colors.bg_4 : colors.bg_3 }}>
                     </div>
                 ))}
             </div>
@@ -124,7 +159,9 @@ Pagination.propTypes = {
         primary: PropTypes.string.isRequired,
     }).isRequired,
 };
-const Poin = () => {
+
+export const PoinList = () => {
+    const navigate = useNavigate()
     return (
         <motion.div className="vh-100 flex-grow-1 d-flex justify-content-center align-items-center"
             style={{ backgroundColor: colors.background }}
@@ -137,7 +174,7 @@ const Poin = () => {
 
 
             <div className="bg-white shadow-lg d-flex flex-column" style={{ width: "95%", height: "95%", borderRadius: "10px", paddingTop: "10px", paddingBottom: "10px" }}>
-                <div className=" p-2 flex-shrink-0 d-flex flex-rpw" style={{ backgroundColor: colors.bg_2 }}>
+                <div className="p-2 flex-shrink-0 d-flex flex-rpw" style={{ backgroundColor: colors.bg_2, marginBottom: "5px" }}>
                     <div
                         className="border border-danger d-flex align-items-center px-2"
                         style={{
@@ -166,15 +203,26 @@ const Poin = () => {
                     </div>
 
                     <button className="d-flex align-items-center justify-content-center btn btn-danger rounded-pill"
-                        style={{ marginLeft: "650px", width: "80px", height: "30px", border: `1px solid ${colors.primary}`, color: "white", fontWeight: "bold", backgroundColor: colors.primary, cursor: "pointer", transition: "transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease", }}
+                        style={{
+                            marginLeft: "690px",
+                            width: "80px",
+                            height: "30px",
+                            border: `1px solid ${colors.primary}`,
+                            color: "white",
+                            backgroundColor: colors.primary,
+                            cursor: "pointer",
+                            transition: "transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease",
+                            fontSize: "14px", // Ukuran teks lebih kecil
+                            fontWeight: "normal" // Hapus efek bold
+                        }}
                         onMouseEnter={(e) => {
                             e.target.style.backgroundColor = colors.bg_2;
                             e.target.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.2)";
                             e.target.style.transform = "scale(1.05)";
-                            e.target.style.color = colors.primary
+                            e.target.style.color = colors.primary;
                         }}
                         onMouseLeave={(e) => {
-                            e.target.style.color = "white"
+                            e.target.style.color = "white";
                             e.target.style.backgroundColor = colors.primary;
                             e.target.style.boxShadow = "none";
                             e.target.style.transform = "scale(1)";
@@ -185,10 +233,13 @@ const Poin = () => {
                         onMouseUp={(e) => {
                             e.target.style.transform = "scale(1.05)";
                         }}
-
+                        onClick={() => {
+                            navigate("/admin/master/poin/add");
+                        }}
                     >
                         Tambah
                     </button>
+
                 </div>
 
                 <div className="flex-grow-1 d-flex justify-content-center">
@@ -204,8 +255,4 @@ const Poin = () => {
 
         </motion.div>
     );
-};
-
-export default Poin
-
-
+}

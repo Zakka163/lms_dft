@@ -97,7 +97,7 @@ export const controllerCallbackAuthGoogle = async (req: Request, res: Response):
             payload.role = existingUser.dataValues.role;
             payload.picture = existingUser?.dataValues.gambar.dataValues.url ? existingUser?.dataValues.gambar.dataValues.url : ""
         }
-        const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '1h' });
+        const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '24h' });
         res.redirect(`${process.env.URL_FRONTEND}/auth-success?token=${token}`);
         // res.json({ token, role: payload.role });
     } catch (error) {
@@ -126,7 +126,7 @@ export const controllerlogin = async (req: Request, res: Response): Promise<any>
         if (!isMatch) {
             return res.status(401).json({ message: 'Username atau password salah' });
         }
-        const token = jwt.sign({ user_id: existingUser.dataValues.user_id, nama: existingUser.dataValues.nama, role: existingUser.dataValues.role, picture: existingUser?.dataValues.gambar ? existingUser?.dataValues.gambar.dataValues.url : "" }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+        const token = jwt.sign({ user_id: existingUser.dataValues.user_id, nama: existingUser.dataValues.nama, role: existingUser.dataValues.role, picture: existingUser?.dataValues.gambar ? existingUser?.dataValues.gambar.dataValues.url : "" }, process.env.JWT_SECRET!, { expiresIn: '24h' });
         res.json({ token, role: existingUser.dataValues.role });
     } catch (error) {
         console.log(error);

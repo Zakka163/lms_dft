@@ -11,7 +11,7 @@ import AuthSucces from "./pages/AuthSucces.jsx";
 import AccessDenied from "./pages/AccesDenied.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import { PrivateRoute } from "./components/PrivateRoute.jsx";
-import Poin from "./pages/master/Poin.jsx";
+import Poin from "./pages/master/Poin/Poin.jsx";
 
 const AdminPage = ({ children }) => {
   return (
@@ -47,7 +47,7 @@ const AppRoutes = () => {
                 <Routes>
                   <Route path="master/jadwal" element={<Jadwal />} />
                   <Route path="master/kategori" element={<Kategori />} />
-                  <Route path="master/poin" element={<Poin />} />
+                  <Route path="master/poin/*" element={<Poin />} /> {/* Rute ke Poin */}
                 </Routes>
               </AdminPage>
             </PrivateRoute>
@@ -60,5 +60,6 @@ const AppRoutes = () => {
     </Router>
   );
 };
+
 
 export default AppRoutes;
