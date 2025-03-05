@@ -9,7 +9,10 @@ export const getAllPoin = async (req: Request, res: Response) => {
         const limit = parseInt(req.query.limit as string) || 10;
         const offset = (page - 1) * limit;
 
+        const search = req.query.search ? (req.query.search as string) : "";
+
         const { count, rows } = await Poin.findAndCountAll({
+            where: search ? { nama_poin: { [Op.like]: `%${search}%` } } : {},
             limit,
             offset,
         });

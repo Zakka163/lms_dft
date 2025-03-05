@@ -9,6 +9,8 @@ import axios from "axios";
 import { config } from "../../../config";
 import { useCallback, useEffect, useState } from "react";
 import { errorNotify } from "../../../helper/toast";
+import { Pagination } from "../../../components/Pagination";
+import LoadingSpinner from "../../../components/Loading";
 
 
 
@@ -19,36 +21,9 @@ const formatPrice = (price) => {
     }).format(price);
 };
 
-const PointTable = () => {
-    const [dataPoin, setDataPoin] = useState([]);
-    const navigate = useNavigate();
-    const token = localStorage.getItem("token");
 
-    const serviceGetAllPoin = useCallback(async () => {
-        try {
-            const response = await axios.get(`${config.APIURL}/poin`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            console.log("🚀 ~ serviceGetAllPoin ~ response:", response.data.data);
-            setDataPoin(response.data.data);
-        } catch (error) {
-            console.log("Error fetching poin", error);
-            if (error.response?.status === 401) {
-                errorNotify("Access Denied");
-            }
-            if (error.response?.status === 404) {
-                errorNotify("Data not found");
-            }
-        }
-    }, [token]); // Hanya bergantung pada token
-
-    useEffect(() => {
-        serviceGetAllPoin();
-    }, [serviceGetAllPoin]); // Panggil sekali saat komponen pertama kali dirender
-
+const PointTable = ({ dataPoin, currentPage }) => {
+    const navigate = useNavigate()
     return (
         <div className="container">
             <div className="mt-2">
@@ -60,9 +35,9 @@ const PointTable = () => {
                     <div style={{ width: "10%" }}>Opsi</div>
                 </div>
                 {dataPoin.map((point, index) => (
-                    <div key={point.poin_id} className="row py-2 border-bottom align-items-center" style={{ height: "60px", backgroundColor: index % 2 === 0 ? colors.bg_4 : colors.bg_3 }}>
+                    <div key={point.poin_id} className="row py-2 border-bottom align-items-center" style={{ height: "60px", backgroundColor: index % 2 != 0 ? colors.bg_4 : colors.bg_3 }}>
                         <div className="" style={{ width: "6%" }}>
-                            <div style={{ marginLeft: "5px" }}>{index + 1}</div>
+                            <div style={{ marginLeft: "5px" }}>{currentPage * 10 + index - 9}</div>
                         </div>
                         <div className="" style={{ width: "35%" }}>{point.nama_poin}</div>
                         <div className="" style={{ width: "29%" }}>{formatPrice(point.harga_diskon)}</div>
@@ -79,89 +54,56 @@ const PointTable = () => {
                     </div>
                 ))}
                 {[...Array(10 - dataPoin.length)].map((_, i) => (
-                    <div key={`empty-${i}`} className="row py-2 border-bottom align-items-center" style={{ height: "60px", backgroundColor: i % 2 === 0 ? colors.bg_4 : colors.bg_3 }}>
+                    <div key={`empty-${i}`} className="row py-2 border-bottom align-items-center" style={{ height: "60px", backgroundColor: i % 2 != 0 ? colors.bg_4 : colors.bg_3 }}>
                     </div>
                 ))}
             </div>
         </div>
     );
 };
-
-const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-    const renderPageNumbers = () => {
-        let pages = [];
-        for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-                pages.push(
-                    <span
-                        key={i}
-                        className="mx-2"
-                        style={{
-                            cursor: "pointer",
-                            color: currentPage === i ? colors.primary : "black",
-                            fontWeight: currentPage === i ? "bold" : "normal",
-                        }}
-                        onClick={() => onPageChange(i)}
-                    >
-                        {i}
-                    </span>
-                );
-            } else if (i === currentPage - 2 || i === currentPage + 2) {
-                pages.push(<span key={i}>.....</span>);
-            }
-        }
-        return pages;
-    };
-
-    return (
-        <div className=" d-flex justify-content-center align-items-center my-3">
-            <button className="d-flex justify-content-center align-items-center"
-                style={{
-                    marginRight: "10px",
-                    width: "25px",
-                    height: "25px",
-                    borderRadius: "50%",
-                    backgroundColor: colors.primary,
-                    border: "none",
-                    color: "white",
-                }}
-                onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-            >
-                <div className="" style={{ marginBottom: "3px" }}> &#8249;</div>
-            </button>
-            {renderPageNumbers()}
-            <button className="d-flex justify-content-center align-items-center"
-                style={{
-                    marginLeft: "10px",
-                    width: "25px",
-                    height: "25px",
-                    borderRadius: "50%",
-                    backgroundColor: colors.primary,
-                    border: "none",
-                    color: "white",
-                }}
-                onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-            >
-                <div className="" style={{ marginBottom: "3px" }}> &#8250;</div>
-            </button>
-        </div>
-    );
-};
-
-// export default Pagination;
-Pagination.propTypes = {
+PointTable.propTypes = {
+    dataPoin: PropTypes.array.isRequired,
     currentPage: PropTypes.number.isRequired,
-    onPageChange: PropTypes.func.isRequired,
-    totalPages: PropTypes.number.isRequired,
-    colors: PropTypes.shape({
-        primary: PropTypes.string.isRequired,
-    }).isRequired,
 };
+
 
 export const PoinList = () => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPage, setTotalPages] = useState(1);
     const navigate = useNavigate()
+    const [dataPoin, setDataPoin] = useState([]);
+    const [isLoading, setIsLoading] = useState(false)
+    // const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState("");
+    const token = localStorage.getItem("token");
+
+    const serviceGetAllPoin = useCallback(async (page = 1, search = "") => {
+        try {
+            setIsLoading(true)
+            const response = await axios.get(`${config.APIURL}/poin?page=${page}&search=${search}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            console.log("🚀 ~ serviceGetAllPoin ~ response:", response.data);
+            setDataPoin(response.data.data);
+            setTotalPages(response.data.totalPages)
+            setCurrentPage(response.data.currentPage)
+            setIsLoading(false)
+        } catch (error) {
+            console.log("Error fetching poin", error);
+            if (error.response?.status === 401) {
+                errorNotify("Access Denied");
+            }
+            if (error.response?.status === 404) {
+                errorNotify("Data not found");
+            }
+        }
+    }, [token]); // Hanya bergantung pada token
+    useEffect(() => {
+        serviceGetAllPoin(1, searchTerm);
+    }, [serviceGetAllPoin, searchTerm]);
     return (
         <motion.div className="vh-100 flex-grow-1 d-flex justify-content-center align-items-center"
             style={{ backgroundColor: colors.background }}
@@ -171,8 +113,6 @@ export const PoinList = () => {
             transition={{ duration: 0.3, ease: "easeOut" }}
         >
             <ToastContainer />
-
-
             <div className="bg-white shadow-lg d-flex flex-column" style={{ width: "95%", height: "95%", borderRadius: "10px", paddingTop: "10px", paddingBottom: "10px" }}>
                 <div className="p-2 flex-shrink-0 d-flex flex-rpw" style={{ backgroundColor: colors.bg_2, marginBottom: "5px" }}>
                     <div
@@ -189,6 +129,7 @@ export const PoinList = () => {
                             src={search}
                             alt="Search"
                             style={{ width: "18px", height: "18px", marginRight: "4px" }}
+                            
                         />
                         <input
                             type="text"
@@ -199,6 +140,8 @@ export const PoinList = () => {
                                 color: "gray",
                                 height: "100%",
                             }}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
 
@@ -243,16 +186,42 @@ export const PoinList = () => {
                 </div>
 
                 <div className="flex-grow-1 d-flex justify-content-center">
-                    <PointTable />
+                    <div className="flex-grow-1 d-flex justify-content-center">
+                        {!isLoading ? (
+                            <PointTable dataPoin={dataPoin} currentPage={currentPage} />
+                        ) : (
+                            <div className="container position-relative">
+                                <div className="mt-2">
+                                    <div className="p-2 row fw-bold border-bottom align-items-center">
+                                        <div style={{ width: "6%" }}>No</div>
+                                        <div style={{ width: "35%" }}>Nama Poin</div>
+                                        <div style={{ width: "29%" }}>Harga</div>
+                                        <div style={{ width: "20%" }}>Status</div>
+                                        <div style={{ width: "10%" }}>Opsi</div>
+                                    </div>
+
+                                    {[...Array(10)].map((_, i) => (
+                                        <div key={`empty-${i}`} className="row py-2 border-bottom align-items-center"
+                                            style={{ height: "60px", backgroundColor: i % 2 !== 0 ? colors.bg_4 : colors.bg_3 }}>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Overlay hanya menutupi border-danger container */}
+                                <div className=" position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-50">
+                                    <LoadingSpinner />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                 </div>
 
 
                 <div className=" flex-shrink-0" style={{ height: "70px" }}>
-                    <Pagination currentPage={2} totalPages={5} onPageChange={(page) => console.log("Page:", page)} />
+                    <Pagination currentPage={currentPage} totalPages={totalPage} onPageChange={(page) => serviceGetAllPoin(page)} disableButton={isLoading} />
                 </div>
             </div>
-
-
         </motion.div>
     );
 }
