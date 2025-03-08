@@ -1,7 +1,9 @@
 import { Model, DataTypes } from "sequelize";
 import { sq } from "../../config/connection.js";
 
-class Materi extends Model {}
+class Materi extends Model {
+    materi_id: number | undefined;
+}
 
 Materi.init(
   {
@@ -21,10 +23,6 @@ Materi.init(
     urutan: {
       type: DataTypes.INTEGER,
       allowNull: false,
-    },
-    link: {
-      type: DataTypes.STRING,
-      allowNull: true,
     },
   },
   {

@@ -16,7 +16,7 @@ SiswaSubMateri.init(
       primaryKey: true,
     },
     status_progress_kelas: {
-      type: DataTypes.STRING, // Misalnya: "Belum Mulai", "Sedang Belajar", "Selesai"
+      type: DataTypes.STRING, 
       allowNull: false,
     },
   },
