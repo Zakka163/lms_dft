@@ -23,45 +23,79 @@ interface ResponseKelas {
 class KelasController {
     static async list(req: Request, res: Response): Promise<any> {
         try {
-            const { nama_kelas, kategori, status_kelas, min_harga, max_harga } = req.query;
-
-            let whereClause = `WHERE k.deletedAt IS NULL`;
-
+            const { nama_kelas, kategori, status_kelas, min_harga, max_harga, search, page, limit } = req.query;
+            let whereClause = ` WHERE k.deletedAt IS NULL`;
+            if (search) {
+                whereClause += ` AND k.nama_kelas LIKE :search `;
+            }
             if (nama_kelas) {
-                whereClause += ` AND k.nama_kelas LIKE :nama_kelas`;
+                whereClause += ` AND k.nama_kelas LIKE :nama_kelas `;
             }
             if (status_kelas) {
-                whereClause += ` AND k.status_kelas = :status_kelas`;
+                whereClause += ` AND k.status_kelas = :status_kelas `;
             }
             if (min_harga) {
-                whereClause += ` AND k.harga_diskon_kelas >= :min_harga`;
+                whereClause += ` AND k.harga_diskon_kelas >= :min_harga `;
             }
             if (max_harga) {
-                whereClause += ` AND k.harga_diskon_kelas <= :max_harga`;
+                whereClause += ` AND k.harga_diskon_kelas <= :max_harga `;
             }
             if (kategori) {
-                whereClause += ` AND sk.nama_sub_kategori = :kategori`;
+                whereClause += ` AND sk.nama_sub_kategori = :kategori `;
             }
-
+            const pageNumber = Number(page) || 1;
+            const limitNumber = Number(limit) || 10;
+            const offset = (pageNumber - 1) * limitNumber;
             let data = await sq.query(
                 `SELECT 
                     k.kelas_id, 
                     k.nama_kelas, 
                     COALESCE(
-                        JSON_ARRAYAGG(DISTINCT sk.nama_sub_kategori), 
+                        JSON_ARRAYAGG(
+                            DISTINCT JSON_OBJECT(
+                                'id', sk.sub_kategori_id,
+                                'nama', sk.nama_sub_kategori
+                            )
+                        ), 
                         JSON_ARRAY()
                     ) AS kategori,
-                    k.harga_diskon_kelas as harga,
+                    k.harga_diskon_kelas AS harga,
                     k.status_kelas 
                 FROM kelas k
                 LEFT JOIN kategori_kelas kk ON kk.kelas_id = k.kelas_id
                 LEFT JOIN sub_kategori sk ON sk.sub_kategori_id = kk.sub_kategori_id
                 ${whereClause}
                 GROUP BY k.kelas_id 
-                ORDER BY k.createdAt DESC`,
+                ORDER BY k.createdAt DESC
+                LIMIT :limit OFFSET :offset;`,
                 {
                     replacements: {
                         nama_kelas: `%${nama_kelas}%`,
+                        search: `%${nama_kelas}%`,
+                        kategori,
+                        status_kelas,
+                        min_harga,
+                        max_harga,
+                        limit: limitNumber,
+                        offset,
+                    },
+                    type: QueryTypes.SELECT,
+                }
+            );
+
+            data = data.map((item: any) => ({
+                ...item,
+                kategori: JSON.parse(item.kategori),
+            }));
+            const totalDataResult = await sq.query(
+                `SELECT COUNT(DISTINCT k.kelas_id) as total FROM kelas k
+                LEFT JOIN kategori_kelas kk ON kk.kelas_id = k.kelas_id
+                LEFT JOIN sub_kategori sk ON sk.sub_kategori_id = kk.sub_kategori_id
+                ${whereClause}`,
+                {
+                    replacements: {
+                        nama_kelas: `%${nama_kelas}%`,
+                        search: `%${nama_kelas}%`,
                         kategori,
                         status_kelas,
                         min_harga,
@@ -70,15 +104,26 @@ class KelasController {
                     type: QueryTypes.SELECT,
                 }
             );
-            data = data.map((item: any) => ({
-                ...item,
-                kategori: JSON.parse(item.kategori),
-            }));
-            res.status(200).json({ success: true, data });
+
+            const totalData = (totalDataResult as { total: number }[])[0]?.total || 0;
+
+            const totalPages = Math.ceil(totalData / limitNumber);
+
+            res.status(200).json({
+                success: true,
+                data,
+                pagination: {
+                    currentPage: pageNumber,
+                    totalPages,
+                    totalData,
+                    limit: limitNumber,
+                },
+            });
         } catch (error: any) {
             res.status(500).json({ success: false, message: error?.message || "Terjadi kesalahan" });
         }
     }
+
     static async add(req: Request, res: Response): Promise<any> {
         const transaction = await sq.transaction();
         try {
@@ -273,7 +318,7 @@ class KelasController {
         }
     }
     static async delete(req: Request, res: Response): Promise<any> {
-        const transaction = await sq.transaction(); 
+        const transaction = await sq.transaction();
         try {
             const { id } = req.params;
             const data = await materi_m.findAll({
@@ -297,9 +342,9 @@ class KelasController {
                 success: true,
                 message: "Kelas berhasil dihapus",
             });
-    
+
         } catch (error: any) {
-            await transaction.rollback(); 
+            await transaction.rollback();
             res.status(500).json({
                 success: false,
                 message: error?.message || "Terjadi kesalahan",
