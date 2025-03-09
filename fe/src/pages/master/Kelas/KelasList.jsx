@@ -12,66 +12,79 @@ import { errorNotify } from "../../../helper/toast";
 import { Pagination } from "../../../components/Pagination";
 import LoadingSpinner from "../../../components/Loading";
 
-
-
 const formatPrice = (price) => {
     return new Intl.NumberFormat("id-ID", {
         style: "currency",
         currency: "IDR",
     }).format(price);
 };
+const colorsKategory = ["bg-primary", "bg-success", "bg-danger", "bg-warning", "bg-info", "bg-secondary"];
 
 
-const PointTable = ({ dataPoin, currentPage }) => {
-    const navigate = useNavigate()
+const KelasTable = ({ dataKelas, currentPage }) => {
+    const navigate = useNavigate();
     return (
         <div className="container">
             <div className="mt-2">
                 <div className="p-2 row fw-bold border-bottom align-items-center">
-                    <div className="text-center" style={{ width: "6%" }}>No</div>
-                    <div style={{ width: "35%" }}>Nama Poin</div>
-                    <div style={{ width: "29%" }}>Harga</div>
-                    <div className="text-center" style={{ width: "20%" }}>Status</div>
-                    <div className="text-center" style={{ width: "10%" }}>Opsi</div>
+                    <div style={{ width: "5%" }}>No</div>
+                    <div style={{ width: "30%" }}>Nama Kelas</div>
+                    <div style={{ width: "30%" }}>Kategori</div>
+                    <div style={{ width: "15%" }}>Harga</div>
+                    <div style={{ width: "10%" }}>Status</div>
+                    <div style={{ width: "10%" }}>Opsi</div>
                 </div>
 
-                {/* Data Rows */}
-                {dataPoin.map((point, index) => (
-                    <div key={point.poin_id} className="row py-2 border-bottom align-items-center"
+                {dataKelas.map((kelas, index) => (
+                    <div key={kelas.kelas_id} className="row py-2 border-bottom align-items-center"
                         style={{ height: "60px", backgroundColor: index % 2 !== 0 ? colors.bg_4 : colors.bg_3 }}>
 
                         {/* Nomor */}
-                        <div className="text-center" style={{ width: "6%" }}>
+                        <div className="text-center" style={{ width: "5%", paddingRight: "10px" }}>
                             <div>{(currentPage - 1) * 10 + index + 1}</div>
                         </div>
 
-                        {/* Nama Poin */}
-                        <div style={{ width: "35%" }}>{point.nama_poin}</div>
+                        {/* Nama Kelas */}
+                        <div className="" style={{ width: "30%" }}>{kelas.nama_kelas}</div>
 
-                        {/* Harga Diskon */}
-                        <div style={{ width: "29%" }}>{formatPrice(point.harga_diskon)}</div>
+                        {/* Kategori */}
+
+
+
+
+                        <div className="d-flex flex-wrap" style={{ width: "30%" }}>
+                            {kelas.kategori.map((kat, i) => (
+                                <span key={i} className={`badge ${colorsKategory[kat.id % colorsKategory.length]} me-1 mb-1`} style={{ fontSize: "12px" }}>
+                                    {kat.nama}
+                                </span>
+                            ))}
+                        </div>
+
+
+
+                        {/* Harga */}
+                        <div className="" style={{ width: "15%" }}>{formatPrice(kelas.harga)}</div>
 
                         {/* Status */}
-                        <div className="text-center" style={{ width: "20%" }}>
-                            <span className={`badge ${point.status ? "bg-success" : "bg-danger"}`}>
-                                {point.status ? "aktif" : "non-aktif"}
+                        <div className="" style={{ width: "10%" }}>
+                            <span className={`badge ${kelas.status ? "bg-success" : "bg-danger"}`}>
+                                {kelas.status ? "aktif" : "non-aktif"}
                             </span>
                         </div>
 
                         {/* Opsi */}
-                        <div className="text-center" style={{ width: "10%" }}>
-                            <button className="btn btn-danger btn-sm"
-                                onClick={() => navigate(`/admin/master/poin/edit/${point.poin_id}`)}>
+                        <div className="" style={{ width: "10%" }}>
+                            <button className="btn btn-danger btn-sm" onClick={() => navigate(`/admin/master/kelas/edit/${kelas.kelas_id}`)}>
                                 Detail
                             </button>
                         </div>
                     </div>
                 ))}
 
-                {/* Placeholder jika data kurang dari 10 */}
-                {[...Array(Math.max(0, 10 - dataPoin.length))].map((_, i) => (
+                {/* Baris Kosong */}
+                {[...Array(Math.max(0, 10 - dataKelas.length))].map((_, i) => (
                     <div key={`empty-${i}`} className="row py-2 border-bottom align-items-center"
-                        style={{ height: "60px", backgroundColor: i % 2 !== 0 ? colors.bg_4 : colors.bg_3 }}>
+                        style={{ height: "60px", backgroundColor: i % 2 == 0 ? colors.bg_4 : colors.bg_3 }}>
                     </div>
                 ))}
 
@@ -79,35 +92,35 @@ const PointTable = ({ dataPoin, currentPage }) => {
         </div>
     );
 };
-PointTable.propTypes = {
-    dataPoin: PropTypes.array.isRequired,
+
+KelasTable.propTypes = {
+    dataKelas: PropTypes.array.isRequired,
     currentPage: PropTypes.number.isRequired,
 };
 
 
-export const PoinList = () => {
+export const KelasList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPage, setTotalPages] = useState(1);
     const navigate = useNavigate()
-    const [dataPoin, setDataPoin] = useState([]);
+    const [dataKelas, setDataKelas] = useState([]);
     const [isLoading, setIsLoading] = useState(false)
-    // const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
     const token = localStorage.getItem("token");
 
-    const serviceGetAllPoin = useCallback(async (page = 1, search = "") => {
+    const serviceGetAllKelas = useCallback(async (page = 1, search = "") => {
         try {
             setIsLoading(true)
-            const response = await axios.get(`${config.APIURL}/poin?page=${page}&search=${search}`, {
+            const response = await axios.get(`${config.APIURL}/kelas/list?page=${page}&nama_kelas=${search}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
 
             console.log("🚀 ~ serviceGetAllPoin ~ response:", response.data);
-            setDataPoin(response.data.data);
-            setTotalPages(response.data.totalPages)
-            setCurrentPage(response.data.currentPage)
+            setDataKelas(response.data.data);
+            setTotalPages(response.data.pagination.totalPages)
+            setCurrentPage(response.data.pagination.currentPage)
             setIsLoading(false)
         } catch (error) {
             console.log("Error fetching poin", error);
@@ -118,10 +131,12 @@ export const PoinList = () => {
                 errorNotify("Data not found");
             }
         }
-    }, [token]); // Hanya bergantung pada token
+    }, [token]);
     useEffect(() => {
-        serviceGetAllPoin(1, searchTerm);
-    }, [serviceGetAllPoin, searchTerm]);
+        serviceGetAllKelas(1, searchTerm);
+    }, [serviceGetAllKelas, searchTerm]);
+
+
     return (
         <motion.div className="vh-100 flex-grow-1 d-flex justify-content-center align-items-center"
             style={{ backgroundColor: colors.background }}
@@ -173,8 +188,8 @@ export const PoinList = () => {
                             backgroundColor: colors.primary,
                             cursor: "pointer",
                             transition: "transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease",
-                            fontSize: "14px", // Ukuran teks lebih kecil
-                            fontWeight: "normal" // Hapus efek bold
+                            fontSize: "14px",
+                            fontWeight: "normal"
                         }}
                         onMouseEnter={(e) => {
                             e.target.style.backgroundColor = colors.bg_2;
@@ -195,7 +210,7 @@ export const PoinList = () => {
                             e.target.style.transform = "scale(1.05)";
                         }}
                         onClick={() => {
-                            navigate("/admin/master/poin/add");
+                            navigate("/admin/master/kelas/add");
                         }}
                     >
                         Tambah
@@ -205,42 +220,42 @@ export const PoinList = () => {
 
                 <div className="flex-grow-1 d-flex justify-content-center">
                     <div className="flex-grow-1 d-flex justify-content-center">
-                        {!isLoading ? (
-                            <PointTable dataPoin={dataPoin} currentPage={currentPage} />
-                        ) : (
-                            <div className="container-fluid position-relative">
-                                <div className="mt-2">
-                                    {/* Header */}
-                                    <div className="p-2 row fw-bold border-bottom align-items-center">
-                                        <div className="text-center" style={{ width: "6%" }}>No</div>
-                                        <div style={{ width: "35%" }}>Nama Poin</div>
-                                        <div style={{ width: "29%" }}>Harga</div>
-                                        <div className="text-center" style={{ width: "20%" }}>Status</div>
-                                        <div className="text-center" style={{ width: "10%" }}>Opsi</div>
-                                    </div>
-
-                                    {/* Placeholder Baris Kosong (10 Baris) */}
-                                    {[...Array(10)].map((_, i) => (
-                                        <div key={`empty-${i}`} className="row py-2 border-bottom align-items-center"
-                                            style={{ height: "60px", backgroundColor: i % 2 !== 0 ? colors.bg_4 : colors.bg_3 }}>
+                        {!isLoading ?
+                            (
+                                <KelasTable dataKelas={dataKelas} currentPage={currentPage} />
+                            ) :
+                            (
+                                <div className="container position-relative">
+                                    <div className="mt-2">
+                                        <div className="p-2 row fw-bold border-bottom align-items-center">
+                                            <div style={{ width: "5%" }}>No</div>
+                                            <div style={{ width: "30%" }}>Nama Kelas</div>
+                                            <div style={{ width: "30%" }}>Kategori</div>
+                                            <div style={{ width: "15%" }}>Harga</div>
+                                            <div style={{ width: "10%" }}>Status</div>
+                                            <div style={{ width: "10%" }}>Opsi</div>
                                         </div>
-                                    ))}
-                                </div>
 
-                                {/* Overlay Loading */}
-                                <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-50">
-                                    <LoadingSpinner />
+                                        {[...Array(10)].map((_, i) => (
+                                            <div key={`empty-${i}`} className="row py-2 border-bottom align-items-center"
+                                                style={{ height: "60px", backgroundColor: i % 2 !== 0 ? colors.bg_4 : colors.bg_3 }}>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-50">
+                                        <LoadingSpinner />
+                                    </div>
                                 </div>
-                            </div>
+                            )
 
-                        )}
+                        }
                     </div>
 
                 </div>
 
 
                 <div className=" flex-shrink-0" style={{ height: "70px" }}>
-                    <Pagination currentPage={currentPage} totalPages={totalPage} onPageChange={(page) => serviceGetAllPoin(page)} disableButton={isLoading} />
+                    <Pagination currentPage={currentPage} totalPages={totalPage} onPageChange={(page) => serviceGetAllKelas(page)} disableButton={isLoading} />
                 </div>
             </div>
         </motion.div>

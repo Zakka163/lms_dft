@@ -38,7 +38,7 @@ const AdminLayout = () => {
         transition: "width 0.3s ease",
         overflow: "hidden",
         color: "white",
-        position: "relative",
+        position: "fixed",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {

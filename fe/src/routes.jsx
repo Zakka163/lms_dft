@@ -12,15 +12,28 @@ import AccessDenied from "./pages/AccesDenied.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import { PrivateRoute } from "./components/PrivateRoute.jsx";
 import Poin from "./pages/master/Poin/Poin.jsx";
+import Kelas from "./pages/master/Kelas/Index.jsx";
 
 const AdminPage = ({ children }) => {
   return (
-    <div className="d-flex flex-row" style={{ backgroundColor: colors.background }}>
-      <NavbarAdmin />
-      {children}
+    <div
+      className="d-flex flex-row"
+      style={{ backgroundColor: colors.background, height: "100vh" }}
+    > <NavbarAdmin />
+      <div
+        style={{
+          marginLeft: "280px",
+          width: "100%",
+          overflowY: "auto",
+        }}
+      >
+        {children}
+      </div>
     </div>
   );
 };
+
+
 
 
 // eslint-disable-next-line no-unused-vars
@@ -48,6 +61,7 @@ const AppRoutes = () => {
                   <Route path="master/jadwal" element={<Jadwal />} />
                   <Route path="master/kategori" element={<Kategori />} />
                   <Route path="master/poin/*" element={<Poin />} /> {/* Rute ke Poin */}
+                  <Route path="master/kelas/*" element={<Kelas />} />
                 </Routes>
               </AdminPage>
             </PrivateRoute>

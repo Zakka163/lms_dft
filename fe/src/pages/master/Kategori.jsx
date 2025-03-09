@@ -481,7 +481,7 @@ const Kategori = () => {
 
       {
         showConfirm && (
-          <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1050 }}>
+          <div className="border border-warning  position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1050 }}>
             <div className="bg-white p-4 rounded shadow-lg " style={{ width: "350px", borderRadius: "12px", textAlign: "center" }}>
               <img src={warning} alt="Warning" width="50px" style={{ marginBottom: "10px" }} />
               <p>Apakah kamu yakin ingin menghapus ini ?</p>
