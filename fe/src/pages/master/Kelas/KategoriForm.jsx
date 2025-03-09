@@ -1,17 +1,38 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import colors from "../../../helper/colors";
+import { config } from "../../../config";
+import LoadingSpinner from "../../../components/Loading";
+
 
 const KategoriForm = () => {
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState("");
     const [selectedSubCategory, setSelectedSubCategory] = useState("");
     const [hoveredIndex, setHoveredIndex] = useState(null);
-    const [categories, setCategories] = useState([
-        { name: "Technology", subcategories: ["Web Development", "Mobile Development", "AI"] },
-        { name: "Design", subcategories: ["Graphic Design", "UI/UX Design", "Animation"] },
-        { name: "Marketing", subcategories: ["SEO", "Content Marketing", "Social Media"] },
-    ]);
-    const [selectedCategories, setSelectedCategories] = useState([]); // Menyimpan kategori yang sudah dipilih
+    const [categories, setCategories] = useState([]);
+    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+    let token = localStorage.getItem("token");
+    const serviceGettAllCategory = async () => {
+        try {
+            const response = await axios.get(`${config.APIURL}/kategori/list`, {
+                headers: {
+
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            console.log("🚀 ~ serviceGettAllCategory ~ response:", response.data.data)
+            setCategories(response.data.data);
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching categories:", error);
+            // setLoading(false);
+        }
+    }
+    useEffect(() => {
+        serviceGettAllCategory()
+    }, []);
 
     const handleAddKategori = () => {
         setIsOverlayVisible(true);
@@ -34,9 +55,11 @@ const KategoriForm = () => {
             return;
         }
 
-        const newCategory = { name: selectedCategory, subcategory: selectedSubCategory };
+        const newCategory = {
+            name: selectedCategory,
+            subcategory: selectedSubCategory
+        };
 
-        // Cek apakah kategori sudah ada dalam daftar yang dipilih
         if (!selectedCategories.some((cat) => cat.name === newCategory.name && cat.subcategory === newCategory.subcategory)) {
             setSelectedCategories((prev) => [...prev, newCategory]);
         } else {
@@ -50,75 +73,75 @@ const KategoriForm = () => {
         setSelectedCategories(selectedCategories.filter((_, i) => i !== index));
     };
 
-    // Filter kategori yang sudah dipilih agar tidak muncul dalam dropdown
     const availableCategories = categories.filter(
-        (category) => !selectedCategories.some((selected) => selected.name === category.name)
+        (category) => !selectedCategories.some((selected) => selected.name === category.nama_kategori)
     );
 
-    // Filter subkategori yang sudah dipilih agar tidak muncul dalam dropdown
     const availableSubCategories = selectedCategory
-        ? categories
-              .find((category) => category.name === selectedCategory)
-              ?.subcategories.filter(
-                  (subCategory) =>
-                      !selectedCategories.some(
-                          (selected) => selected.name === selectedCategory && selected.subcategory === subCategory
-                      )
-              ) || []
+        ? categories.find((category) => category.nama_kategori === selectedCategory)?.sub_kategoris.filter(
+            (subCategory) =>
+                !selectedCategories.some(
+                    (selected) => selected.name === selectedCategory && selected.subcategory === subCategory.nama_sub_kategori
+                )
+        ) || []
         : [];
 
     return (
         <div className="shadow-sm card p-3 position-relative" style={{ width: "100%", minHeight: "300px", borderRadius: "10px", marginBottom: "10px" }}>
             <label className="form-label fw-bold">Kategori *</label>
 
-            {/* List Kategori yang sudah dipilih */}
-            <div className="d-flex flex-wrap gap-2">
-                {selectedCategories.map((category, index) => (
-                    <div
-                        key={index}
-                        className="border-danger d-flex flex-row card p-2 shadow-sm text-center position-relative"
-                        style={{
-                            borderRadius: "10px",
-                            width: "max-content",
-                            backgroundColor: "#f8f9fa",
-                            fontWeight: "bold",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "5px"
-                        }}
-                        onMouseEnter={() => setHoveredIndex(index)}
-                        onMouseLeave={() => setHoveredIndex(null)}
-                    >
-                        {category.name} - {category.subcategory}
-                        {hoveredIndex === index && (
-                            <button
-                                className="btn btn-sm btn-danger position-absolute"
-                                style={{
-                                    top: "-5px",
-                                    right: "-5px",
-                                    borderRadius: "50%",
-                                    fontSize: "10px",
-                                    padding: "2px 6px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center"
-                                }}
-                                onClick={() => handleRemoveCategory(index)}
-                            >
-                                ✕
-                            </button>
-                        )}
-                    </div>
-                ))}
-            </div>
+            {loading ? (
+                <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-50">
+                    <LoadingSpinner />
+                </div>
+            ) : (
+                <div className="d-flex flex-wrap gap-2">
+                    {selectedCategories.map((category, index) => (
+                        <div
+                            key={index}
+                            className="border-danger d-flex flex-row card p-2 shadow-sm text-center position-relative"
+                            style={{
+                                borderRadius: "10px",
+                                width: "max-content",
+                                backgroundColor: "#f8f9fa",
+                                fontWeight: "bold",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px"
+                            }}
+                            onMouseEnter={() => setHoveredIndex(index)}
+                            onMouseLeave={() => setHoveredIndex(null)}
+                        >
+                            {category.name} - {category.subcategory}
+                            {hoveredIndex === index && (
+                                <button
+                                    className="btn btn-sm btn-danger position-absolute"
+                                    style={{
+                                        top: "-5px",
+                                        right: "-5px",
+                                        borderRadius: "50%",
+                                        fontSize: "10px",
+                                        padding: "2px 6px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center"
+                                    }}
+                                    onClick={() => handleRemoveCategory(index)}
+                                >
+                                    ✕
+                                </button>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
 
-            <button className="btn btn-danger mt-2" 
-                style={{ borderRadius: "8px", width: "max-content", backgroundColor: colors.primary, fontWeight: "bold" }} 
+            <button className="btn btn-danger mt-2"
+                style={{ borderRadius: "8px", width: "max-content", backgroundColor: colors.primary, fontWeight: "bold" }}
                 onClick={handleAddKategori}>
                 Add
             </button>
 
-            {/* Overlay */}
             {isOverlayVisible && (
                 <>
                     <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark opacity-50" style={{ zIndex: 10 }}></div>
@@ -128,7 +151,7 @@ const KategoriForm = () => {
                             <select className="form-select border-danger mb-3" value={selectedCategory} onChange={handleCategoryChange}>
                                 <option value="">Pilih Kategori</option>
                                 {availableCategories.map((category, index) => (
-                                    <option key={index} value={category.name}>{category.name}</option>
+                                    <option key={index} value={category.nama_kategori}>{category.nama_kategori}</option>
                                 ))}
                             </select>
 
@@ -136,7 +159,7 @@ const KategoriForm = () => {
                                 <select className="form-select border-danger mb-3" value={selectedSubCategory} onChange={(e) => setSelectedSubCategory(e.target.value)}>
                                     <option value="">Pilih Subkategori</option>
                                     {availableSubCategories.map((subCategory, index) => (
-                                        <option key={index} value={subCategory}>{subCategory}</option>
+                                        <option key={index} value={subCategory.nama_sub_kategori}>{subCategory.nama_sub_kategori}</option>
                                     ))}
                                 </select>
                             )}

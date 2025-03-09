@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import loading1 from "../assets/loading1.png";
 import loading2 from '../assets/loading2.png';
@@ -16,8 +15,8 @@ const LoadingSpinner = () => {
             setTimeout(() => {
                 setCurrentImage((prev) => (prev + 1) % images.length);
                 setFade(true);
-            }, 200);
-        }, 150);
+            }, 500);
+        }, 120);
         return () => clearInterval(interval);
     }, []);
 

@@ -10,6 +10,7 @@ import warning from "../../assets/warning.png";
 import { config } from "../../config";
 import axios from "axios";
 import { errorNotify, successNotify } from "../../helper/toast";
+import LoadingSpinner from "../../components/Loading";
 
 const Kategori = () => {
   const [categories, setCategories] = useState([]);
@@ -21,7 +22,7 @@ const Kategori = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [isSubAdding, setIsSubAdding] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-
+  const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(false);
   const [idIsOpen, setIdIsOpen] = useState("");
   const [idIsSubEditing, setIdIsSubEditing] = useState("");
@@ -44,7 +45,7 @@ const Kategori = () => {
 
   // service fetch
   let token = localStorage.getItem("token");
-  
+
   const serviceGetCategory = useCallback(async () => {
     try {
       const response = await axios.get(
@@ -57,6 +58,7 @@ const Kategori = () => {
       )
       console.log("🚀 ~ serviceGetCategory ~ response:", response)
       setCategories([...transformData(response.data.data)])
+      setLoading(false)
     } catch (error) {
       console.log("Error fetching schedule", error);
       if (error.response?.status === 401) {
@@ -332,156 +334,161 @@ const Kategori = () => {
     <motion.div className="vh-100 flex-grow-1 d-flex justify-content-center align-items-center" style={{ backgroundColor: colors.background }} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3, ease: "easeOut" }} >
       <ToastContainer />
       <div className=" bg-white shadow-lg d-flex flex-column" style={{ width: "95%", height: "95%", borderRadius: "10px", padding: "20px", }}>
+        {loading ? (
+          <div className=" w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-50">
+            <LoadingSpinner />
+          </div>
+        ) : (
+          <><div className=" d-flex justify-content-between mb-3">
+            <h4></h4>
+            <button className="btn btn-danger rounded-pill" style={{ marginRight: "30px", marginTop: "5px", width: "100px", height: "40px", border: `2px solid ${colors.primary}`, color: "white", fontWeight: "bold", backgroundColor: colors.primary, cursor: "pointer", transition: "transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease", }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = "white";
+                e.target.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.2)";
+                e.target.style.transform = "scale(1.05)";
+                e.target.style.color = colors.primary
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.color = "white"
+                e.target.style.backgroundColor = colors.primary;
+                e.target.style.boxShadow = "none";
+                e.target.style.transform = "scale(1)";
+              }}
+              onMouseDown={(e) => {
+                e.target.style.transform = "scale(0.95)";
+              }}
+              onMouseUp={(e) => {
+                e.target.style.transform = "scale(1.05)";
+              }}
+              onClick={() => setIsAdding(true)}
+            >
+              Tambah
+            </button>
+          </div>
 
-        <div className="d-flex justify-content-between mb-3">
-          <h4></h4>
-          <button className="btn btn-danger rounded-pill" style={{ marginRight: "30px", marginTop: "5px", width: "100px", height: "40px", border: `2px solid ${colors.primary}`, color: "white", fontWeight: "bold", backgroundColor: colors.primary, cursor: "pointer", transition: "transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease", }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = "white";
-              e.target.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.2)";
-              e.target.style.transform = "scale(1.05)";
-              e.target.style.color = colors.primary
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.color = "white"
-              e.target.style.backgroundColor = colors.primary;
-              e.target.style.boxShadow = "none";
-              e.target.style.transform = "scale(1)";
-            }}
-            onMouseDown={(e) => {
-              e.target.style.transform = "scale(0.95)";
-            }}
-            onMouseUp={(e) => {
-              e.target.style.transform = "scale(1.05)";
-            }}
-            onClick={() => setIsAdding(true)}
-          >
-            Tambah
-          </button>
-        </div>
+            <div className="flex-grow-1 p-4 overflow-auto">
+              {
+                categories.map((i) => (
 
-        <div className="flex-grow-1 p-4 overflow-auto">
-          {
-            categories.map((i) => (
+                  <div key={i.id} className="border rounded shadow-sm p-2 mb-3" style={{ borderColor: colors.primary, borderWidth: "2px", borderStyle: "solid" }}>
+                    <div className="d-flex justify-content-between align-items-center">
+                      {
+                        i.isEditing ?
+                          (
+                            <input
+                              type="text"
+                              value={i.name}
+                              onChange={(e) => handleEditChange(i.id, e.target.value)}
+                              onBlur={(e) => stopEditing(i.id, e.target.value)}
+                              onKeyDown={(e) => e.key === "Enter" && stopEditing(i.id, e.target.value)}
+                              className="form-control edit-input"
+                              onFocus={(e) => (e.target.style.transform = "scale(1)")}
+                            />
 
-              <div key={i.id} className="border rounded shadow-sm p-2 mb-3" style={{ borderColor: colors.primary, borderWidth: "2px", borderStyle: "solid" }}>
-                <div className="d-flex justify-content-between align-items-center">
-                  {
-                    i.isEditing ?
-                      (
-                        <input
-                          type="text"
-                          value={i.name}
-                          onChange={(e) => handleEditChange(i.id, e.target.value)}
-                          onBlur={(e) => stopEditing(i.id, e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && stopEditing(i.id, e.target.value)}
-                          className="form-control edit-input"
-                          onFocus={(e) => (e.target.style.transform = "scale(1)")}
-                        />
-
-                      ) :
-                      (
-                        <button className="btn btn-link text-dark text-decoration-none" onClick={() => toggleCategory(i.id)} >
-                          {<img
-                            src={down}
-                            alt="down Icon"
-                            width="13px"
-                            height="13px"
-                            className={`me-2 icon-white ${i.id == idIsOpen ? "rotate" : ""}`}
-                            style={{
-                              transition: "transform 0.3s ease-in-out",
-                              transform: i.id == idIsOpen ? "rotate(0deg)" : "rotate(-90deg)",
-                            }}
-                          />
-                          }
-                          {i.name}
-                        </button>
-                      )
-                  }
-                  <div>
+                          ) :
+                          (
+                            <button className="btn btn-link text-dark text-decoration-none" onClick={() => toggleCategory(i.id)} >
+                              {<img
+                                src={down}
+                                alt="down Icon"
+                                width="13px"
+                                height="13px"
+                                className={`me-2 icon-white ${i.id == idIsOpen ? "rotate" : ""}`}
+                                style={{
+                                  transition: "transform 0.3s ease-in-out",
+                                  transform: i.id == idIsOpen ? "rotate(0deg)" : "rotate(-90deg)",
+                                }}
+                              />
+                              }
+                              {i.name}
+                            </button>
+                          )
+                      }
+                      <div>
+                        {
+                          i.id == idIsOpen ?
+                            (
+                              <button
+                                className="btn btn-sm me-2" style={{ backgroundColor: colors.primary, color: "white" }}
+                                onClick={() => {
+                                  setCategoryId(i.id)
+                                  setIsSubAdding(true)
+                                }
+                                }>
+                                Tambah
+                              </button>
+                            ) :
+                            (
+                              <button
+                                className="btn btn-sm btn-warning me-2" style={{ color: "white" }}
+                                onClick={() => startEditing(i.id)}>
+                                Edit
+                              </button>
+                            )
+                        }
+                      </div>
+                    </div>
                     {
-                      i.id == idIsOpen ?
-                        (
-                          <button
-                            className="btn btn-sm me-2" style={{ backgroundColor: colors.primary, color: "white" }}
-                            onClick={() => {
-                              setCategoryId(i.id)
-                              setIsSubAdding(true)
-                            }
-                            }>
-                            Tambah
-                          </button>
-                        ) :
-                        (
-                          <button
-                            className="btn btn-sm btn-warning me-2" style={{ color: "white" }}
-                            onClick={() => startEditing(i.id)}>
-                            Edit
-                          </button>
-                        )
+                      i.id == idIsOpen && (
+                        <div className="mt-2 ps-4">
+                          {
+                            i.subcategories.map((sub, index) => (
+                              <div key={index} className="p-1 m-1 d-flex justify-content-between align-items-center" style={{ backgroundColor: colors.background }}>
+                                {
+                                  idIsSubEditing == sub.sub_kategori_id ?
+                                    (
+                                      <input
+                                        type="text"
+                                        value={sub.name}
+                                        onChange={(e) => handleSubEditChange(i.id, sub.sub_kategori_id, e.target.value)}
+                                        onBlur={(e) => stopSubEditing(i.id, sub.sub_kategori_id, e.target.value)}
+                                        onKeyDown={(e) => e.key === "Enter" && stopSubEditing(i.id, sub.sub_kategori_id, e.target.value)}
+                                        className="form-control edit-input"
+                                        onFocus={(e) => (e.target.style.transform = "scale(1)")}
+                                      />
+                                    )
+                                    :
+                                    (
+                                      <span style={{ marginLeft: "10px" }} className="d-flex align-items-center">
+                                        <img
+                                          src={subkategori}
+                                          alt="down Icon"
+                                          width="13px"
+                                          height="13px"
+                                          className="me-2 icon-white"
+                                          style={{
+                                            transition: "transform 0.3s ease-in-out",
+                                            transform: i.id == idIsOpen ? "rotate(0deg)" : "rotate(-90deg)",
+                                          }}
+                                        />
+                                        {sub.name}
+                                      </span>
+                                    )
+                                }
+                                <span className="d-flex align-items-center">
+                                  <button type="button" className="btn border me-2" onClick={() => startSubEditing(i.id, sub.sub_kategori_id)}>
+                                    <img src={pen} alt="edit Icon" width="22px" height="22px" className="icon-white" />
+                                  </button>
+                                  <button type="button" className="btn border" onClick={() => handleRemove(sub.sub_kategori_id)}>
+                                    <img src={remove} alt="remove Icon" width="22px" height="22px" className="icon-white" />
+                                  </button>
+                                </span>
+                              </div>
+                            ))
+                          }
+                        </div>
+                      )
                     }
                   </div>
-                </div>
-                {
-                  i.id == idIsOpen && (
-                    <div className="mt-2 ps-4">
-                      {
-                        i.subcategories.map((sub, index) => (
-                          <div key={index} className="p-1 m-1 d-flex justify-content-between align-items-center" style={{ backgroundColor: colors.background }}>
-                            {
-                              idIsSubEditing == sub.sub_kategori_id ?
-                                (
-                                  <input
-                                    type="text"
-                                    value={sub.name}
-                                    onChange={(e) => handleSubEditChange(i.id, sub.sub_kategori_id, e.target.value)}
-                                    onBlur={(e) => stopSubEditing(i.id, sub.sub_kategori_id, e.target.value)}
-                                    onKeyDown={(e) => e.key === "Enter" && stopSubEditing(i.id, sub.sub_kategori_id, e.target.value)}
-                                    className="form-control edit-input"
-                                    onFocus={(e) => (e.target.style.transform = "scale(1)")}
-                                  />
-                                )
-                                :
-                                (
-                                  <span style={{ marginLeft: "10px" }} className="d-flex align-items-center">
-                                    <img
-                                      src={subkategori}
-                                      alt="down Icon"
-                                      width="13px"
-                                      height="13px"
-                                      className="me-2 icon-white"
-                                      style={{
-                                        transition: "transform 0.3s ease-in-out",
-                                        transform: i.id == idIsOpen ? "rotate(0deg)" : "rotate(-90deg)",
-                                      }}
-                                    />
-                                    {sub.name}
-                                  </span>
-                                )
-                            }
-                            <span className="d-flex align-items-center">
-                              <button type="button" className="btn border me-2" onClick={() => startSubEditing(i.id, sub.sub_kategori_id)}>
-                                <img src={pen} alt="edit Icon" width="22px" height="22px" className="icon-white" />
-                              </button>
-                              <button type="button" className="btn border" onClick={() => handleRemove(sub.sub_kategori_id)}>
-                                <img src={remove} alt="remove Icon" width="22px" height="22px" className="icon-white" />
-                              </button>
-                            </span>
-                          </div>
-                        ))
-                      }
-                    </div>
-                  )
-                }
-              </div>
-            ))
-          }
-        </div>
+                ))
+              }
+            </div></>)}
+
       </div>
 
       {
         showConfirm && (
-          <div className="border border-warning  position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1050 }}>
+          <div className="  position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1050 }}>
             <div className="bg-white p-4 rounded shadow-lg " style={{ width: "350px", borderRadius: "12px", textAlign: "center" }}>
               <img src={warning} alt="Warning" width="50px" style={{ marginBottom: "10px" }} />
               <p>Apakah kamu yakin ingin menghapus ini ?</p>

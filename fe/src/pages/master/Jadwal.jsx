@@ -5,9 +5,11 @@ import axios from "axios";
 import { errorNotify, successNotify } from "../../helper/toast";
 import { ToastContainer } from "react-toastify";
 import { motion } from "framer-motion";
+import LoadingSpinner from "../../components/Loading";
 function Jadwal() {
   const [daySelected, setDaySelected] = useState("Senin");
   const [dataJadwal, setDataJadwal] = useState([]);
+  const [loading, setLoading] = useState(true);
   let token = localStorage.getItem("token");
   useEffect(() => {
 
@@ -29,6 +31,7 @@ function Jadwal() {
       );
       console.log(response.data.data);
       setDataJadwal(response.data.data);
+      setLoading(false)
     } catch (error) {
       console.log("Error fetching schedule", error);
       if (error.response?.status === 401) {
@@ -98,8 +101,8 @@ function Jadwal() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      // className="dropdown-menu show position-absolute end-0 mt-2 shadow bg-white rounded d-grid"
-      // style={{ width: "400px", position: "relative" }}
+    // className="dropdown-menu show position-absolute end-0 mt-2 shadow bg-white rounded d-grid"
+    // style={{ width: "400px", position: "relative" }}
     >
       <ToastContainer />
       <div
@@ -155,7 +158,11 @@ function Jadwal() {
             padding: "20px",
           }}
         >
-          {dataJadwal.map((i, j) => (
+          {loading ? (
+            <div className=" w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-50">
+              <LoadingSpinner />
+            </div>
+          ) : (<>{dataJadwal.map((i, j) => (
             <div
               key={j}
               className="d-flex justify-content-between align-items-center mb-3 p-3 rounded shadow-sm"
@@ -181,7 +188,8 @@ function Jadwal() {
                 <span className="slider"></span>
               </label>
             </div>
-          ))}
+          ))}</>)}
+
 
           <style>
             {`
