@@ -125,10 +125,23 @@ class KelasController {
     }
 
     static async add(req: Request, res: Response): Promise<any> {
+
         const transaction = await sq.transaction();
         try {
-            const { nama_kelas, deskripsi_kelas, poin_reward, background_kelas, harga_kelas, harga_diskon_kelas, pembelajaran_kelas, status_kelas, pengajar, kategori, materi } = req.body;
-
+            let parsedKategori = [];
+            const {
+                nama_kelas,
+                deskripsi_kelas,
+                poin_reward,
+                harga_kelas,
+                harga_diskon_kelas,
+                pembelajaran_kelas,
+                status_kelas,
+                pengajar,
+                kategori, // Ambil dalam bentuk string terlebih dahulu
+                materi
+            } = req.body; const background_kelas = req.file ? `${req.file.filename}` : null;
+            parsedKategori = kategori ? JSON.parse(kategori) : [];
             const kelasBaru = await kelas_m.create(
                 {
                     nama_kelas,
@@ -143,10 +156,11 @@ class KelasController {
                 },
                 { transaction }
             );
-            if (Array.isArray(kategori) && kategori.length > 0) {
-                const kategoriKelasData = kategori.map((sub_kategori_id: number) => ({
+            console.log("🚀 ~ KelasController ~ add ~ kelasBaru:", parsedKategori)
+            if (Array.isArray(parsedKategori) && parsedKategori.length > 0) {
+                const kategoriKelasData = parsedKategori.map((data: any) => ({
                     kelas_id: kelasBaru.kelas_id,
-                    sub_kategori_id,
+                    sub_kategori_id: data.sub_kategori_id,
                 }));
                 await kelas_kategori_m.bulkCreate(kategoriKelasData, { transaction });
             }
@@ -203,9 +217,12 @@ class KelasController {
                     k.pembelajaran_kelas,
                     k.status_kelas,
                     k.pengajar,
+                    k.background_kelas,
                     COALESCE(JSON_ARRAYAGG(DISTINCT JSON_OBJECT(
                         'sub_kategori_id', sk.sub_kategori_id,
-                        'nama_kategori', sk.nama_sub_kategori
+                        'nama_kategori', kt.nama_kategori,
+                        'kategori_id', kt.kategori_id,
+                        'nama_sub_kategori', sk.nama_sub_kategori
                     )), JSON_ARRAY()) AS kategori,
                     COALESCE(JSON_ARRAYAGG(DISTINCT JSON_OBJECT(
                         'materi_id', m.materi_id,
@@ -223,8 +240,9 @@ class KelasController {
                 FROM kelas k
                 LEFT JOIN kategori_kelas kk ON kk.kelas_id = k.kelas_id 
                 LEFT JOIN sub_kategori sk ON sk.sub_kategori_id = kk.sub_kategori_id 
+                LEFT JOIN kategori kt ON kt.kategori_id = sk.kategori_id 
                 LEFT JOIN materi m ON m.kelas_id = k.kelas_id 
-                LEFT JOIN sub_materi sm ON sm.materi_id = m.materi_id 
+                LEFT JOIN sub_materi sm ON sm.materi_id = m.materi_id  
                 WHERE kk.deletedAt is null and sk.deletedAt is null and m.deletedAt is null and sm.deletedAt is null and k.kelas_id = :kelasId
                 GROUP BY k.kelas_id;
             `;
