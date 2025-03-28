@@ -62,7 +62,7 @@ class KelasController {
                     k.harga_diskon_kelas AS harga,
                     k.status_kelas 
                 FROM kelas k
-                LEFT JOIN kategori_kelas kk ON kk.kelas_id = k.kelas_id
+                LEFT JOIN kategori_kelas kk ON kk.kelas_id = k.kelas_id and kk.deletedAt is null
                 LEFT JOIN sub_kategori sk ON sk.sub_kategori_id = kk.sub_kategori_id
                 ${whereClause}
                 GROUP BY k.kelas_id 
@@ -206,8 +206,7 @@ class KelasController {
     }
     static async getById(req: Request, res: Response): Promise<any> {
         try {
-            const query = `
-                SELECT 
+            const query = `SELECT 
                     k.kelas_id, 
                     k.nama_kelas, 
                     k.deskripsi_kelas,
@@ -218,33 +217,46 @@ class KelasController {
                     k.status_kelas,
                     k.pengajar,
                     k.background_kelas,
-                    COALESCE(JSON_ARRAYAGG(DISTINCT JSON_OBJECT(
-                        'sub_kategori_id', sk.sub_kategori_id,
-                        'nama_kategori', kt.nama_kategori,
-                        'kategori_id', kt.kategori_id,
-                        'nama_sub_kategori', sk.nama_sub_kategori
-                    )), JSON_ARRAY()) AS kategori,
-                    COALESCE(JSON_ARRAYAGG(DISTINCT JSON_OBJECT(
-                        'materi_id', m.materi_id,
-                        'nama_materi', m.nama_materi,
-                        'urutan', m.urutan,
-                        'sub_materi', (
-                            SELECT JSON_ARRAYAGG(DISTINCT JSON_OBJECT(
-                                'sub_materi_id', sm.sub_materi_id,
-                                'nama_sub_materi', sm.nama_sub_materi,
-                                'urutan', sm.urutan,
-                                'link', sm.link
-                            )) FROM sub_materi sm WHERE sm.materi_id = m.materi_id
-                        )
-                    )), JSON_ARRAY()) AS materi
+                    COALESCE(
+                        (SELECT JSON_ARRAYAGG(
+                            JSON_OBJECT(
+                                'sub_kategori_id', sk.sub_kategori_id,
+                                'nama_kategori', kt.nama_kategori,
+                                'kategori_id', kt.kategori_id,
+                                'nama_sub_kategori', sk.nama_sub_kategori
+                            )
+                        ) 
+                        FROM kategori_kelas kk
+                        JOIN sub_kategori sk ON sk.sub_kategori_id = kk.sub_kategori_id AND sk.deletedAt IS NULL
+                        JOIN kategori kt ON kt.kategori_id = sk.kategori_id AND kt.deletedAt IS NULL
+                        WHERE kk.kelas_id = k.kelas_id and  kk.deletedAt is null
+                        ), JSON_ARRAY()
+                    ) AS kategori,
+                    COALESCE(
+                        (SELECT JSON_ARRAYAGG(
+                            JSON_OBJECT(
+                                'materi_id', m.materi_id,
+                                'nama_materi', m.nama_materi,
+                                'urutan', m.urutan,
+                                'sub_materi', COALESCE(
+                                    (SELECT JSON_ARRAYAGG(
+                                        JSON_OBJECT(
+                                            'sub_materi_id', sm.sub_materi_id,
+                                            'nama_sub_materi', sm.nama_sub_materi,
+                                            'urutan', sm.urutan,
+                                            'link', sm.link
+                                        )
+                                    ) FROM sub_materi sm 
+                                    WHERE sm.materi_id = m.materi_id AND sm.deletedAt IS NULL), JSON_ARRAY()
+                                )
+                            )
+                        ) 
+                        FROM materi m 
+                        WHERE m.kelas_id = k.kelas_id AND m.deletedAt IS NULL
+                        ), JSON_ARRAY()
+                    ) AS materi
                 FROM kelas k
-                LEFT JOIN kategori_kelas kk ON kk.kelas_id = k.kelas_id 
-                LEFT JOIN sub_kategori sk ON sk.sub_kategori_id = kk.sub_kategori_id 
-                LEFT JOIN kategori kt ON kt.kategori_id = sk.kategori_id 
-                LEFT JOIN materi m ON m.kelas_id = k.kelas_id 
-                LEFT JOIN sub_materi sm ON sm.materi_id = m.materi_id  
-                WHERE kk.deletedAt is null and sk.deletedAt is null and m.deletedAt is null and sm.deletedAt is null and k.kelas_id = :kelasId
-                GROUP BY k.kelas_id;
+                WHERE k.deletedAt IS NULL and k.kelas_id = :kelasId
             `;
 
             const [data]: ResponseKelas[] = await sq.query(query, {
@@ -264,62 +276,88 @@ class KelasController {
         }
     }
     static async update(req: Request, res: Response): Promise<any> {
+        const { id } = req.params;
         const transaction = await sq.transaction();
         try {
-            const { id } = req.params;
-            const { nama_kelas, deskripsi_kelas, poin_reward, background_kelas, harga_kelas, harga_diskon_kelas, pembelajaran_kelas, status_kelas, pengajar, kategori, materi } = req.body;
-
-            const kelas = await kelas_m.findByPk(id, { transaction });
+            let parsedKategori = [];
+            const {
+                nama_kelas,
+                deskripsi_kelas,
+                poin_reward,
+                harga_kelas,
+                harga_diskon_kelas,
+                pembelajaran_kelas,
+                status_kelas,
+                pengajar,
+                kategori, // String, perlu di-parse
+                materi
+            } = req.body;
+            
+            const background_kelas = req.file ? `${req.file.filename}` : null;
+            parsedKategori = kategori ? JSON.parse(kategori) : [];
+            console.log("🚀 ~ KelasController ~ update ~ parsedKategori:", parsedKategori)
+            console.log("🚀 ~ KelasController ~ update ~ parsedKategori:", parsedKategori)
+            
+            const kelas = await kelas_m.findByPk(id);
             if (!kelas) {
+                await transaction.rollback();
                 return res.status(404).json({ success: false, message: "Kelas tidak ditemukan" });
             }
-
-            await kelas.update(
-                { nama_kelas, deskripsi_kelas, poin_reward, background_kelas, harga_kelas, harga_diskon_kelas, pembelajaran_kelas, status_kelas, pengajar },
-                { transaction }
-            );
-
-            if (Array.isArray(kategori)) {
-                await kelas_kategori_m.destroy({ where: { kelas_id: id }, transaction });
-                if (kategori.length > 0) {
-                    const kategoriKelasData = kategori.map((sub_kategori_id: number) => ({
+            
+            await kelas.update({
+                nama_kelas,
+                deskripsi_kelas,
+                poin_reward,
+                background_kelas: background_kelas || kelas.background_kelas,
+                harga_kelas,
+                harga_diskon_kelas,
+                pembelajaran_kelas,
+                status_kelas,
+                pengajar,
+            }, { transaction });
+            
+            // Update kategori jika ada perubahan
+            if (Array.isArray(parsedKategori)) {
+                await kelas_kategori_m.destroy({ where: { kelas_id: id },force: true, transaction });
+                if (parsedKategori.length > 0) {
+                    const kategoriKelasData = parsedKategori.map((data: any) => ({
                         kelas_id: id,
-                        sub_kategori_id,
+                        sub_kategori_id: data.sub_kategori_id,
                     }));
                     await kelas_kategori_m.bulkCreate(kategoriKelasData, { transaction });
                 }
             }
-
+            
+            // Update materi dan sub-materi
             if (Array.isArray(materi)) {
                 await materi_m.destroy({ where: { kelas_id: id }, transaction });
-                let subMateriData: any[] = [];
-
-                if (materi.length > 0) {
-                    const materiData = materi.map((materiItem) => ({
+                const materiBaru = await materi_m.bulkCreate(
+                    materi.map((materiItem) => ({
                         nama_materi: materiItem.nama_materi,
                         urutan: materiItem.urutan,
                         kelas_id: id,
-                    }));
-                    const materiBaru = await materi_m.bulkCreate(materiData, { transaction, returning: true });
-
-                    materi.forEach((materiItem, index) => {
-                        if (Array.isArray(materiItem.sub_materi)) {
-                            materiItem.sub_materi.forEach((subItem: any) => {
-                                subMateriData.push({
-                                    link: subItem.link,
-                                    nama_sub_materi: subItem.nama_sub_materi,
-                                    urutan: subItem.urutan,
-                                    materi_id: materiBaru[index].materi_id as number,
-                                });
+                    })),
+                    { transaction, returning: true }
+                );
+                
+                let subMateriData: any[] = [];
+                materi.forEach((materiItem, index) => {
+                    if (Array.isArray(materiItem.sub_materi)) {
+                        materiItem.sub_materi.forEach((subItem: any) => {
+                            subMateriData.push({
+                                link: subItem.link,
+                                nama_sub_materi: subItem.nama_sub_materi,
+                                urutan: subItem.urutan,
+                                materi_id: materiBaru[index].materi_id,
                             });
-                        }
-                    });
-                    if (subMateriData.length > 0) {
-                        await sub_materi_m.bulkCreate(subMateriData, { transaction });
+                        });
                     }
+                });
+                if (subMateriData.length > 0) {
+                    await sub_materi_m.bulkCreate(subMateriData, { transaction });
                 }
             }
-
+            
             await transaction.commit();
             res.status(200).json({
                 success: true,

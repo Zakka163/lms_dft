@@ -13,7 +13,7 @@ const PORT = 5000;
 
 // Tes koneksi database
 testConnection();
-app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 // Middleware CORS
 app.use(cors({
     origin: "*",
