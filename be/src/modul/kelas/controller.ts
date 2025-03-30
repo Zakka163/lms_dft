@@ -5,6 +5,7 @@ import QueryTypes from "sequelize/lib/query-types";
 import kelas_kategori_m from "../kategori_kelas/model.js"
 import materi_m from "../materi/model.js"
 import sub_materi_m from "../sub_materi/model.js"
+import { Op } from "sequelize";
 
 interface ResponseKelas {
     kelas_id: number;
@@ -279,7 +280,7 @@ class KelasController {
                 pembelajaran_kelas,
                 status_kelas,
                 pengajar,
-                kategori, 
+                kategori,
                 materi
             } = req.body;
 
@@ -313,10 +314,18 @@ class KelasController {
                 }
             }
             if (Array.isArray(parsedMateri)) {
+                const data_materi_exist = await materi_m.findAll({
+                    where: {
+                        materi_id: {
+                            [Op.in]: [1, 23, 4] 
+                        }
+                    }
+                });
+
                 if (parsedMateri.length > 0) {
                     const updateNamaMateriCases = parsedMateri.map((m, i) => `WHEN materi_id = :id${i} THEN :name${i}`).join(" ");
                     const updateUrutanCases = parsedMateri.map((m, i) => `WHEN materi_id = :id${i} THEN :order${i}`).join(" ");
-                
+
                     const updateQuery = `
                         UPDATE materi 
                         SET 
@@ -324,7 +333,7 @@ class KelasController {
                             urutan = CASE ${updateUrutanCases} END
                         WHERE materi_id IN (${parsedMateri.map((_, i) => `:id${i}`).join(", ")});
                     `;
-                
+
                     // Membuat objek bind parameters
                     const bindParams: Record<string, any> = {};
                     parsedMateri.forEach((m, i) => {
@@ -332,13 +341,13 @@ class KelasController {
                         bindParams[`name${i}`] = m.name;
                         bindParams[`order${i}`] = m.order;
                     });
-                
-                    await sq.query(updateQuery, { 
-                        transaction, 
-                        replacements: bindParams 
+
+                    await sq.query(updateQuery, {
+                        transaction,
+                        replacements: bindParams
                     });
                 }
-                
+
             }
             await transaction.commit();
             res.status(200).json({
