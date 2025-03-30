@@ -5,7 +5,8 @@ import QueryTypes from "sequelize/lib/query-types";
 import kelas_kategori_m from "../kategori_kelas/model.js"
 import materi_m from "../materi/model.js"
 import sub_materi_m from "../sub_materi/model.js"
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
+import { updateKategoriKelas, updateKelas, updateMateriKelas } from "./helper.js";
 
 interface ResponseKelas {
     kelas_id: number;
@@ -268,9 +269,9 @@ class KelasController {
     }
     static async update(req: Request, res: Response): Promise<any> {
         const { id } = req.params;
-        const transaction = await sq.transaction();
-        try {
+        const transaction: Transaction = await sq.transaction();
 
+        try {
             const {
                 nama_kelas,
                 deskripsi_kelas,
@@ -284,81 +285,30 @@ class KelasController {
                 materi
             } = req.body;
 
-            const background_kelas = req.file ? `${req.file.filename}` : null;
-            let parsedKategori = kategori ? JSON.parse(kategori) : [];
-            let parsedMateri = materi ? JSON.parse(materi) : [];
+            const background_kelas = req.file ? req.file.filename : null;
+            const parsedKategori = kategori ? JSON.parse(kategori) : [];
+            const parsedMateri = materi ? JSON.parse(materi) : [];
+
             const kelas = await kelas_m.findByPk(id);
             if (!kelas) {
                 await transaction.rollback();
                 return res.status(404).json({ success: false, message: "Kelas tidak ditemukan" });
             }
-            await kelas.update({
-                nama_kelas,
-                deskripsi_kelas,
-                poin_reward,
-                background_kelas: background_kelas || kelas.background_kelas,
-                harga_kelas,
-                harga_diskon_kelas,
-                pembelajaran_kelas,
-                status_kelas,
-                pengajar,
-            }, { transaction });
-            if (Array.isArray(parsedKategori)) {
-                await kelas_kategori_m.destroy({ where: { kelas_id: id }, force: true, transaction });
-                if (parsedKategori.length > 0) {
-                    const kategoriKelasData = parsedKategori.map((data: any) => ({
-                        kelas_id: id,
-                        sub_kategori_id: data.sub_kategori_id,
-                    }));
-                    await kelas_kategori_m.bulkCreate(kategoriKelasData, { transaction });
-                }
-            }
-            if (Array.isArray(parsedMateri)) {
-                const data_materi_exist = await materi_m.findAll({
-                    where: {
-                        materi_id: {
-                            [Op.in]: [1, 23, 4] 
-                        }
-                    }
-                });
 
-                if (parsedMateri.length > 0) {
-                    const updateNamaMateriCases = parsedMateri.map((m, i) => `WHEN materi_id = :id${i} THEN :name${i}`).join(" ");
-                    const updateUrutanCases = parsedMateri.map((m, i) => `WHEN materi_id = :id${i} THEN :order${i}`).join(" ");
+            await updateKelas(kelas, { nama_kelas, deskripsi_kelas, poin_reward, harga_kelas, harga_diskon_kelas, pembelajaran_kelas, status_kelas, pengajar, background_kelas }, transaction);
+            await updateKategoriKelas(id, parsedKategori, transaction);
+            await updateMateriKelas(id, parsedMateri, transaction);
 
-                    const updateQuery = `
-                        UPDATE materi 
-                        SET 
-                            nama_materi = CASE ${updateNamaMateriCases} END,
-                            urutan = CASE ${updateUrutanCases} END
-                        WHERE materi_id IN (${parsedMateri.map((_, i) => `:id${i}`).join(", ")});
-                    `;
-
-                    // Membuat objek bind parameters
-                    const bindParams: Record<string, any> = {};
-                    parsedMateri.forEach((m, i) => {
-                        bindParams[`id${i}`] = m.id;
-                        bindParams[`name${i}`] = m.name;
-                        bindParams[`order${i}`] = m.order;
-                    });
-
-                    await sq.query(updateQuery, {
-                        transaction,
-                        replacements: bindParams
-                    });
-                }
-
-            }
             await transaction.commit();
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 message: "Kelas berhasil diperbarui",
                 data: kelas,
             });
         } catch (error: any) {
-            console.log("🚀 ~ KelasController ~ update ~ error:", error);
+            console.error("🚀 ~ KelasController ~ update ~ error:", error);
             await transaction.rollback();
-            res.status(500).json({
+            return res.status(500).json({
                 success: false,
                 message: error?.message || "Terjadi kesalahan",
             });
@@ -396,6 +346,54 @@ class KelasController {
                 success: false,
                 message: error?.message || "Terjadi kesalahan",
             });
+        }
+    }
+    static async siswa(req: Request, res: Response): Promise<any> {
+        try {
+            const { nama_kelas, min_harga, max_harga, search, page, limit } = req.query;
+            const pageNumber = Number(page) || 1;
+            const limitNumber = Number(limit) || 10;
+            const offset = (pageNumber - 1) * limitNumber;
+            const whereClause: any = {
+                deletedAt: null,
+            };
+
+            if (search) {
+                whereClause.nama_kelas = { [Op.like]: `%${search}%` };
+            }
+            if (nama_kelas) {
+                whereClause.nama_kelas = { [Op.like]: `%${nama_kelas}%` };
+            }
+            if (min_harga) {
+                whereClause.harga_diskon_kelas = { [Op.gte]: Number(min_harga) };
+            }
+            if (max_harga) {
+                whereClause.harga_diskon_kelas = {
+                    ...whereClause.harga_diskon_kelas,
+                    [Op.lte]: Number(max_harga)
+                };
+            }
+            const { rows: data, count: totalData } = await kelas_m.findAndCountAll({
+                where: whereClause,
+                attributes: ["kelas_id", "nama_kelas", ["harga_diskon_kelas", "harga"], "background_kelas", "deskripsi_kelas", "harga_kelas", "status_kelas"],
+                order: [["createdAt", "DESC"]],
+                limit: limitNumber,
+                offset,
+                distinct: true,
+            });
+            const totalPages = Math.ceil(totalData / limitNumber);
+            res.status(200).json({
+                success: true,
+                data,
+                pagination: {
+                    currentPage: pageNumber,
+                    totalPages,
+                    totalData,
+                    limit: limitNumber,
+                },
+            });
+        } catch (error: any) {
+            res.status(500).json({ success: false, message: error?.message || "Terjadi kesalahan" });
         }
     }
 }
