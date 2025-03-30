@@ -356,6 +356,7 @@ class KelasController {
             const offset = (pageNumber - 1) * limitNumber;
             const whereClause: any = {
                 deletedAt: null,
+                status_kelas:"aktif"
             };
 
             if (search) {
