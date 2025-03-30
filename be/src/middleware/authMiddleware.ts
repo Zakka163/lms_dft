@@ -15,7 +15,7 @@ export const authMiddleware = (req: any, res: Response, next: NextFunction): any
             return res.status(403).json({ message: 'Token tidak valid, akses ditolak' });
         }
         req.user = decoded;
-        console.log(req.user);
+        // console.log(req.user);
         next();
     });
 };

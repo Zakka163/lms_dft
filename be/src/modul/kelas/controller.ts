@@ -123,12 +123,10 @@ class KelasController {
             res.status(500).json({ success: false, message: error?.message || "Terjadi kesalahan" });
         }
     }
-
     static async add(req: Request, res: Response): Promise<any> {
 
         const transaction = await sq.transaction();
         try {
-            let parsedKategori = [];
             const {
                 nama_kelas,
                 deskripsi_kelas,
@@ -138,25 +136,15 @@ class KelasController {
                 pembelajaran_kelas,
                 status_kelas,
                 pengajar,
-                kategori, // Ambil dalam bentuk string terlebih dahulu
+                kategori,
                 materi
-            } = req.body; const background_kelas = req.file ? `${req.file.filename}` : null;
-            parsedKategori = kategori ? JSON.parse(kategori) : [];
-            const kelasBaru = await kelas_m.create(
-                {
-                    nama_kelas,
-                    deskripsi_kelas,
-                    poin_reward,
-                    background_kelas,
-                    harga_kelas,
-                    harga_diskon_kelas,
-                    pembelajaran_kelas,
-                    status_kelas,
-                    pengajar,
-                },
-                { transaction }
-            );
-            console.log("🚀 ~ KelasController ~ add ~ kelasBaru:", parsedKategori)
+            } = req.body;
+            const background_kelas = req.file ? `${req.file.filename}` : null;
+            let parsedKategori = kategori ? JSON.parse(kategori) : [];
+            let parsedMateri = materi ? JSON.parse(materi) : [];
+
+            const kelasBaru = await kelas_m.create({ nama_kelas, deskripsi_kelas, poin_reward, background_kelas, harga_kelas, harga_diskon_kelas, pembelajaran_kelas, status_kelas, pengajar }, { transaction });
+
             if (Array.isArray(parsedKategori) && parsedKategori.length > 0) {
                 const kategoriKelasData = parsedKategori.map((data: any) => ({
                     kelas_id: kelasBaru.kelas_id,
@@ -164,29 +152,31 @@ class KelasController {
                 }));
                 await kelas_kategori_m.bulkCreate(kategoriKelasData, { transaction });
             }
-            if (Array.isArray(materi) && materi.length > 0) {
-                const materiData = materi.map((materiItem) => ({
-                    nama_materi: materiItem.nama_materi,
-                    urutan: materiItem.urutan,
+
+
+            if (Array.isArray(parsedMateri) && parsedMateri.length > 0) {
+                const materiData = parsedMateri.map((materiItem) => ({
+                    nama_materi: materiItem.name,
+                    urutan: materiItem.order,
                     kelas_id: kelasBaru.kelas_id,
                 }));
                 const materiBaru = await materi_m.bulkCreate(materiData, { transaction, returning: true });
-                let subMateriData: any[] = [];
-                materi.forEach((materiItem, index) => {
-                    if (Array.isArray(materiItem.sub_materi) && materiItem.sub_materi.length > 0) {
-                        materiItem.sub_materi.forEach((subItem: any) => {
-                            subMateriData.push({
-                                link: subItem.link,
-                                nama_sub_materi: subItem.nama_sub_materi,
-                                urutan: subItem.urutan,
-                                materi_id: materiBaru[index].materi_id as number,
-                            });
-                        });
-                    }
-                });
-                if (subMateriData.length > 0) {
-                    await sub_materi_m.bulkCreate(subMateriData, { transaction });
-                }
+                // let subMateriData: any[] = [];
+                // parsedMateri.forEach((materiItem, index) => {
+                //     if (Array.isArray(materiItem.sub_materi) && materiItem.sub_materi.length > 0) {
+                //         materiItem.sub_materi.forEach((subItem: any) => {
+                //             subMateriData.push({
+                //                 link: subItem.link,
+                //                 nama_sub_materi: subItem.nama_sub_materi,
+                //                 urutan: subItem.urutan,
+                //                 materi_id: materiBaru[index].materi_id as number,
+                //             });
+                //         });
+                //     }
+                // });
+                // if (subMateriData.length > 0) {
+                //     await sub_materi_m.bulkCreate(subMateriData, { transaction });
+                // }
             }
 
             await transaction.commit();
@@ -279,7 +269,7 @@ class KelasController {
         const { id } = req.params;
         const transaction = await sq.transaction();
         try {
-            let parsedKategori = [];
+
             const {
                 nama_kelas,
                 deskripsi_kelas,
@@ -289,21 +279,18 @@ class KelasController {
                 pembelajaran_kelas,
                 status_kelas,
                 pengajar,
-                kategori, // String, perlu di-parse
+                kategori, 
                 materi
             } = req.body;
-            
+
             const background_kelas = req.file ? `${req.file.filename}` : null;
-            parsedKategori = kategori ? JSON.parse(kategori) : [];
-            console.log("🚀 ~ KelasController ~ update ~ parsedKategori:", parsedKategori)
-            console.log("🚀 ~ KelasController ~ update ~ parsedKategori:", parsedKategori)
-            
+            let parsedKategori = kategori ? JSON.parse(kategori) : [];
+            let parsedMateri = materi ? JSON.parse(materi) : [];
             const kelas = await kelas_m.findByPk(id);
             if (!kelas) {
                 await transaction.rollback();
                 return res.status(404).json({ success: false, message: "Kelas tidak ditemukan" });
             }
-            
             await kelas.update({
                 nama_kelas,
                 deskripsi_kelas,
@@ -315,10 +302,8 @@ class KelasController {
                 status_kelas,
                 pengajar,
             }, { transaction });
-            
-            // Update kategori jika ada perubahan
             if (Array.isArray(parsedKategori)) {
-                await kelas_kategori_m.destroy({ where: { kelas_id: id },force: true, transaction });
+                await kelas_kategori_m.destroy({ where: { kelas_id: id }, force: true, transaction });
                 if (parsedKategori.length > 0) {
                     const kategoriKelasData = parsedKategori.map((data: any) => ({
                         kelas_id: id,
@@ -327,37 +312,34 @@ class KelasController {
                     await kelas_kategori_m.bulkCreate(kategoriKelasData, { transaction });
                 }
             }
-            
-            // Update materi dan sub-materi
-            if (Array.isArray(materi)) {
-                await materi_m.destroy({ where: { kelas_id: id }, transaction });
-                const materiBaru = await materi_m.bulkCreate(
-                    materi.map((materiItem) => ({
-                        nama_materi: materiItem.nama_materi,
-                        urutan: materiItem.urutan,
-                        kelas_id: id,
-                    })),
-                    { transaction, returning: true }
-                );
+            if (Array.isArray(parsedMateri)) {
+                if (parsedMateri.length > 0) {
+                    const updateNamaMateriCases = parsedMateri.map((m, i) => `WHEN materi_id = :id${i} THEN :name${i}`).join(" ");
+                    const updateUrutanCases = parsedMateri.map((m, i) => `WHEN materi_id = :id${i} THEN :order${i}`).join(" ");
                 
-                let subMateriData: any[] = [];
-                materi.forEach((materiItem, index) => {
-                    if (Array.isArray(materiItem.sub_materi)) {
-                        materiItem.sub_materi.forEach((subItem: any) => {
-                            subMateriData.push({
-                                link: subItem.link,
-                                nama_sub_materi: subItem.nama_sub_materi,
-                                urutan: subItem.urutan,
-                                materi_id: materiBaru[index].materi_id,
-                            });
-                        });
-                    }
-                });
-                if (subMateriData.length > 0) {
-                    await sub_materi_m.bulkCreate(subMateriData, { transaction });
+                    const updateQuery = `
+                        UPDATE materi 
+                        SET 
+                            nama_materi = CASE ${updateNamaMateriCases} END,
+                            urutan = CASE ${updateUrutanCases} END
+                        WHERE materi_id IN (${parsedMateri.map((_, i) => `:id${i}`).join(", ")});
+                    `;
+                
+                    // Membuat objek bind parameters
+                    const bindParams: Record<string, any> = {};
+                    parsedMateri.forEach((m, i) => {
+                        bindParams[`id${i}`] = m.id;
+                        bindParams[`name${i}`] = m.name;
+                        bindParams[`order${i}`] = m.order;
+                    });
+                
+                    await sq.query(updateQuery, { 
+                        transaction, 
+                        replacements: bindParams 
+                    });
                 }
+                
             }
-            
             await transaction.commit();
             res.status(200).json({
                 success: true,

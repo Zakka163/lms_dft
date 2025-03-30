@@ -1,8 +1,12 @@
 import { Model, DataTypes } from "sequelize";
 import { sq } from "../../config/connection.js";
+import Kelas from "../kelas/model.js";
 
 class Materi extends Model {
     materi_id: number | undefined;
+    nama_materi: any;
+    urutan: any;
+    kelas_id: any;
 }
 
 Materi.init(
@@ -33,5 +37,8 @@ Materi.init(
     paranoid: true,
   }
 );
+Kelas.hasMany(Materi, { foreignKey: "kelas_id" });
+Materi.belongsTo(Kelas, { foreignKey: "kelas_id" });
+
 
 export default Materi;
