@@ -67,14 +67,15 @@ const KelasTable = ({ dataKelas, currentPage }) => {
 
                         {/* Status */}
                         <div className="" style={{ width: "10%" }}>
-                            <span className={`badge ${kelas.status ? "bg-success" : "bg-danger"}`}>
-                                {kelas.status ? "aktif" : "non-aktif"}
+                            <span className={`badge ${kelas.status_kelas == "aktif" ? "bg-success" : "bg-danger"}`}>
+                                {kelas.status_kelas == "aktif"  ? "aktif" : "non-aktif"}
                             </span>
                         </div>
+                       
 
                         {/* Opsi */}
                         <div className="" style={{ width: "10%" }}>
-                            <button className="btn btn-danger btn-sm" onClick={() => navigate(`/admin/master/kelas/edit/${kelas.kelas_id}`)}>
+                            <button className="btn btn-danger btn-sm" onClick={() => navigate(`/admin/master/kelas/detail/${kelas.kelas_id}`)}>
                                 Detail
                             </button>
                         </div>

@@ -1,67 +1,92 @@
+/* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import axios from "axios";
 import colors from "../../../helper/colors";
 import { config } from "../../../config";
 import LoadingSpinner from "../../../components/Loading";
 
-
-const KategoriForm = () => {
-    const [isOverlayVisible, setIsOverlayVisible] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState("");
-    const [selectedSubCategory, setSelectedSubCategory] = useState("");
-    const [hoveredIndex, setHoveredIndex] = useState(null);
+const KategoriForm = ({ isEditing,formData, setFormData }) => {
+   
     const [categories, setCategories] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const [selectedSubCategory, setSelectedSubCategory] = useState("");
+    const [selectedSubCategoryId, setSelectedSubCategoryId] = useState("");
+    const [hoveredIndex, setHoveredIndex] = useState(null);
     const [loading, setLoading] = useState(true);
-    let token = localStorage.getItem("token");
-    const serviceGettAllCategory = async () => {
-        try {
-            const response = await axios.get(`${config.APIURL}/kategori/list`, {
-                headers: {
+    const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+    const [token, setToken] = useState("");
 
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            console.log("🚀 ~ serviceGettAllCategory ~ response:", response.data.data)
-            setCategories(response.data.data);
-            setLoading(false);
-        } catch (error) {
-            console.error("Error fetching categories:", error);
-            // setLoading(false);
-        }
-    }
     useEffect(() => {
-        serviceGettAllCategory()
+        const savedToken = localStorage.getItem("token");
+        if (savedToken) setToken(savedToken);
+        // console.log("🚀 ~ KategoriForm ~ formData:", formData)
+        let data = []
+       
+        for (let i = 0; i < formData.categories.length; i++) {
+            data.push({
+                id: formData.categories[i].kategori_id || formData.categories[i].id,
+                name: formData.categories[i].nama_kategori || formData.categories[i].name,
+                sub_kategori_id: formData.categories[i].sub_kategori_id,
+                subcategory:  formData.categories[i].nama_sub_kategori || formData.categories[i].subcategory,
+            })
+        }
+        // console.log("🚀 ~ useEffect ~ data:", data)
+        setSelectedCategories(data)
     }, []);
 
-    const handleAddKategori = () => {
-        setIsOverlayVisible(true);
+    const serviceGetAllCategory = async () => {
+        if (!token) return;
+        try {
+            const response = await axios.get(`${config.APIURL}/kategori/list`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setCategories(response.data.data);
+        } catch (error) {
+            console.error("Error fetching categories:", error);
+        } finally {
+            setLoading(false);
+        }
     };
+
+    useEffect(() => {
+        serviceGetAllCategory();
+    }, [token]);
+
+    const handleAddKategori = () => setIsOverlayVisible(true);
 
     const handleCloseOverlay = () => {
         setIsOverlayVisible(false);
         setSelectedCategory("");
         setSelectedSubCategory("");
+        setSelectedSubCategoryId("");
     };
 
     const handleCategoryChange = (e) => {
         setSelectedCategory(e.target.value);
         setSelectedSubCategory("");
+        setSelectedSubCategoryId("");
     };
 
     const handleAddSelectedCategory = () => {
-        if (!selectedCategory || !selectedSubCategory) {
+        if (!selectedCategory || !selectedSubCategory || !selectedSubCategoryId) {
             alert("Pilih kategori dan subkategori terlebih dahulu!");
             return;
         }
 
+        const categoryObj = categories.find(cat => cat.nama_kategori === selectedCategory);
+        if (!categoryObj) return;
+
         const newCategory = {
-            name: selectedCategory,
-            subcategory: selectedSubCategory
+            id: categoryObj.kategori_id,
+            name: categoryObj.nama_kategori,
+            sub_kategori_id: selectedSubCategoryId,
+            subcategory: selectedSubCategory,
         };
 
-        if (!selectedCategories.some((cat) => cat.name === newCategory.name && cat.subcategory === newCategory.subcategory)) {
-            setSelectedCategories((prev) => [...prev, newCategory]);
+        if (!selectedCategories.some(cat => cat.id === newCategory.id && cat.subcategory === newCategory.subcategory)) {
+            setSelectedCategories(prev => [...prev, newCategory]);
+            setFormData({ ...formData, categories: [...(formData.categories || []), newCategory] });
         } else {
             alert("Kategori sudah ditambahkan sebelumnya!");
         }
@@ -70,24 +95,26 @@ const KategoriForm = () => {
     };
 
     const handleRemoveCategory = (index) => {
-        setSelectedCategories(selectedCategories.filter((_, i) => i !== index));
+        
+        setFormData({ ...formData, categories: [] });
+        setSelectedCategories(prev => prev.filter((_, i) => i !== index));
+        console.log(selectedCategories);
+        setFormData({ ...formData, categories: selectedCategories.filter((_, i) => i !== index) });
     };
 
     const availableCategories = categories.filter(
-        (category) => !selectedCategories.some((selected) => selected.name === category.nama_kategori)
+        category => !selectedCategories.some(selected => selected.id === category.kategori_id)
     );
 
-    const availableSubCategories = selectedCategory
-        ? categories.find((category) => category.nama_kategori === selectedCategory)?.sub_kategoris.filter(
-            (subCategory) =>
-                !selectedCategories.some(
-                    (selected) => selected.name === selectedCategory && selected.subcategory === subCategory.nama_sub_kategori
-                )
-        ) || []
+    const selectedCategoryObj = categories.find(cat => cat.nama_kategori === selectedCategory);
+    const availableSubCategories = selectedCategoryObj
+        ? selectedCategoryObj.sub_kategoris.filter(sub =>
+            !selectedCategories.some(selected => selected.name === selectedCategory && selected.subcategory === sub.nama_sub_kategori)
+        )
         : [];
 
     return (
-        <div className="shadow-sm card p-3 position-relative" style={{ width: "100%", minHeight: "300px", borderRadius: "10px", marginBottom: "10px" }}>
+        <div >
             <label className="form-label fw-bold">Kategori *</label>
 
             {loading ? (
@@ -113,7 +140,7 @@ const KategoriForm = () => {
                             onMouseLeave={() => setHoveredIndex(null)}
                         >
                             {category.name} - {category.subcategory}
-                            {hoveredIndex === index && (
+                            {hoveredIndex === index && isEditing && (
                                 <button
                                     className="btn btn-sm btn-danger position-absolute"
                                     style={{
@@ -126,6 +153,7 @@ const KategoriForm = () => {
                                         alignItems: "center",
                                         justifyContent: "center"
                                     }}
+                                    disabled={!isEditing}
                                     onClick={() => handleRemoveCategory(index)}
                                 >
                                     ✕
@@ -136,11 +164,12 @@ const KategoriForm = () => {
                 </div>
             )}
 
-            <button className="btn btn-danger mt-2"
+            {isEditing&&<button className="btn btn-danger mt-2"
+             disabled={!isEditing}
                 style={{ borderRadius: "8px", width: "max-content", backgroundColor: colors.primary, fontWeight: "bold" }}
                 onClick={handleAddKategori}>
                 Add
-            </button>
+            </button>}
 
             {isOverlayVisible && (
                 <>
@@ -156,10 +185,21 @@ const KategoriForm = () => {
                             </select>
 
                             {selectedCategory && availableSubCategories.length > 0 && (
-                                <select className="form-select border-danger mb-3" value={selectedSubCategory} onChange={(e) => setSelectedSubCategory(e.target.value)}>
+                                <select
+                                    className="form-select border-danger mb-3"
+                                    value={selectedSubCategoryId}
+                                    onChange={(e) => {
+                                        const selectedValue = parseInt(e.target.value, 10);
+                                        setSelectedSubCategoryId(selectedValue);
+                                        const selectedSub = availableSubCategories.find(sub => sub.sub_kategori_id === selectedValue);
+                                        setSelectedSubCategory(selectedSub ? selectedSub.nama_sub_kategori : "");
+                                    }}
+                                >
                                     <option value="">Pilih Subkategori</option>
                                     {availableSubCategories.map((subCategory, index) => (
-                                        <option key={index} value={subCategory.nama_sub_kategori}>{subCategory.nama_sub_kategori}</option>
+                                        <option key={index} value={subCategory.sub_kategori_id}>
+                                            {subCategory.nama_sub_kategori}
+                                        </option>
                                     ))}
                                 </select>
                             )}
