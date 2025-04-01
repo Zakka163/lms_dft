@@ -6,6 +6,7 @@ import RouterKategori from "./modul/kategori/route.js";
 import RouterSubKategori from "./modul/sub_kategori/route.js";
 import RouterPoin from "./modul/poin/route.js";
 import RouterKelas from "./modul/kelas/route.js";
+import PembayaranKelasRouter from "./modul/pembayaran_kelas/route.js";
 const router = Router()
 
 
@@ -18,5 +19,5 @@ router.use('/kategori',RouterKategori)
 router.use('/sub_kategori',RouterSubKategori)
 router.use("/poin", RouterPoin);
 router.use("/kelas", RouterKelas);
-
+router.use("/pembayaran_kelas", PembayaranKelasRouter);
 export default router

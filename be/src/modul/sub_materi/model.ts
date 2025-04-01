@@ -2,7 +2,7 @@ import { Model, DataTypes } from "sequelize";
 import { sq } from "../../config/connection.js";
 import Materi from "../materi/model.js";
 
-class SubMateri extends Model {}
+class SubMateri extends Model { }
 
 SubMateri.init(
   {
@@ -23,17 +23,26 @@ SubMateri.init(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    link: {
+    content: {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    type: {
+      type: DataTypes.STRING, // text , link
+      allowNull: true,
+    },
+    is_free: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    }
   },
   {
     sequelize: sq,
     modelName: "sub_materi",
     tableName: "sub_materi",
     timestamps: true,
-    paranoid: true, 
+    paranoid: true,
   }
 );
 

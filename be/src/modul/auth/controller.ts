@@ -29,6 +29,7 @@ interface Payload {
     nama: string;
     role: string;
     picture: string;
+    email: string;
 }
 
 export const controllerLoginGoogle = async (req: Request, res: Response): Promise<void> => {
@@ -73,7 +74,7 @@ export const controllerCallbackAuthGoogle = async (req: Request, res: Response):
         console.log("🚀 ~ controllerCallbackAuthGoogle ~ existingUser:", existingUser?.dataValues.gambar.dataValues)
 
 
-        let payload: Payload = { user_id: "", nama: "", role: "", picture: "" };
+        let payload: Payload = { user_id: "", nama: "", role: "", picture: "", email: "" };
 
         if (!existingUser) {
             const newGambar = await Gambar.create({
@@ -91,11 +92,13 @@ export const controllerCallbackAuthGoogle = async (req: Request, res: Response):
             payload.nama = newUser.dataValues.nama;
             payload.role = newUser.dataValues.role;
             payload.picture = newGambar.dataValues.url ? newGambar.dataValues.url : ""
+            payload.email = newUser.dataValues.email;
         } else {
             payload.user_id = existingUser.dataValues.user_id;
             payload.nama = existingUser.dataValues.nama;
             payload.role = existingUser.dataValues.role;
             payload.picture = existingUser?.dataValues.gambar.dataValues.url ? existingUser?.dataValues.gambar.dataValues.url : ""
+            payload.email = existingUser.dataValues.email;
         }
         const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '24h' });
         res.redirect(`${process.env.URL_FRONTEND}/auth-success?token=${token}`);
@@ -126,7 +129,7 @@ export const controllerlogin = async (req: Request, res: Response): Promise<any>
         if (!isMatch) {
             return res.status(401).json({ message: 'Username atau password salah' });
         }
-        const token = jwt.sign({ user_id: existingUser.dataValues.user_id, nama: existingUser.dataValues.nama, role: existingUser.dataValues.role, picture: existingUser?.dataValues.gambar ? existingUser?.dataValues.gambar.dataValues.url : "" }, process.env.JWT_SECRET!, { expiresIn: '24h' });
+        const token = jwt.sign({ email: existingUser.dataValues.email, user_id: existingUser.dataValues.user_id, nama: existingUser.dataValues.nama, role: existingUser.dataValues.role, picture: existingUser?.dataValues.gambar ? existingUser?.dataValues.gambar.dataValues.url : "" }, process.env.JWT_SECRET!, { expiresIn: '24h' });
         res.json({ token, role: existingUser.dataValues.role });
     } catch (error) {
         console.log(error);

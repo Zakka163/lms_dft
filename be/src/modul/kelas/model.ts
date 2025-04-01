@@ -13,6 +13,7 @@ class Kelas extends Model {
   public pembelajaran_kelas!: string;
   public status_kelas!: string;
   public pengajar!: string;
+  public is_diskon!:boolean;
 }
 
 Kelas.init(
@@ -39,6 +40,11 @@ Kelas.init(
     harga_kelas: {
       type: DataTypes.FLOAT,
       allowNull: false,
+    },
+    is_diskon: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true
     },
     harga_diskon_kelas: {
       type: DataTypes.FLOAT,

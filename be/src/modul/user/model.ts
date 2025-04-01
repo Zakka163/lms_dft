@@ -66,4 +66,5 @@ user.init(
 
 Gambar.hasMany(user, { foreignKey: "gambar_id"});
 user.belongsTo(Gambar, { foreignKey: "gambar_id"});
+
 export default user;
