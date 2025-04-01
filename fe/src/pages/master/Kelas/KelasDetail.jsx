@@ -9,6 +9,14 @@ import uploadImg from "../../../assets/upload.png";
 import KategoriForm from "./KategoriForm";
 import { successNotify } from "../../../helper/toast";
 import MateriForm from "./Materi";
+import user_default from "../../../assets/sidebar/user_default.png";
+const pesertaData = Array.from({ length: 28 }, (_, index) => ({
+    id: index + 1,
+    name: `Peserta ${index + 1}`,
+    photo: (index % 2) == 0 ? user_default : `https://thispersondoesnotexist.com/`
+}));
+
+
 const KelasDetail = () => {
     const { id } = useParams();
     const [kelas, setKelas] = useState(null);
@@ -36,7 +44,7 @@ const KelasDetail = () => {
             if (response.data.data?.materi && Array.isArray(response.data.data.materi)) {
                 for (let i = 0; i < response.data.data.materi.length; i++) {
                     dataMateri.push({
-                        id:(response.data.data.materi[i].materi_id).toString(),
+                        id: (response.data.data.materi[i].materi_id).toString(),
                         name: response.data.data.materi[i].nama_materi,
                         isEditing: false,
                         subcategories: response.data.data.materi[i].sub_materi || [], // Hindari undefined
@@ -328,7 +336,7 @@ const KelasDetail = () => {
                         <KategoriForm key={dataKelas.categories.length} isEditing={isEditing} formData={kelas} setFormData={setKelas} />
                     </div>
                     }
-                    <div className="shadow-sm card" style={{
+                    <div className="mb-2 shadow-sm card" style={{
                         width: "100%",
                         minHeight: "300px",
                         borderRadius: "10px",
@@ -420,6 +428,55 @@ const KelasDetail = () => {
                         </div>
 
                     </div>
+
+                    <div className="shadow-sm card" style={{
+                        width: "100%",
+                        minHeight: "200px",
+                        borderRadius: "10px",
+                        padding: "20px",
+                        backgroundColor: "white"
+                    }}>
+                        {/* Header */}
+                        <div className="mb-3 d-flex align-items-center">
+                            <label className="form-label fw-bold">Peserta *</label>
+                        </div>
+
+                        {/* Jika pesertaData kosong */}
+                        {pesertaData.length === 0 ? (
+                            <div className="text-center text-muted align-items-center justify-content-center" style={{ fontSize: "14px",marginTop:"40px" }}>
+                                Tidak ada peserta
+                            </div>
+                        ) : (
+                            <div style={{
+                                display: "flex",
+                                overflowX: "auto",
+                                paddingBottom: "10px",
+                                whiteSpace: "nowrap"
+                            }}>
+                                <div style={{
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(10, 1fr)", // 10 kolom per baris
+                                    gap: "20px",
+                                    paddingBottom: "10px"
+                                }}>
+                                    {pesertaData.map((peserta) => (
+                                        <div key={peserta.id} className="d-flex flex-column align-items-center">
+                                            <img
+                                                src={peserta.photo}
+                                                alt={peserta.name}
+                                                className="rounded-circle border"
+                                                style={{ width: "60px", height: "60px", objectFit: "cover" }}
+                                            />
+                                            <span className="mt-2" style={{ fontWeight: "bold", fontSize: "14px" }}>
+                                                {peserta.name}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
 
                 </div>
 

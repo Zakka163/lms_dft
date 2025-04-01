@@ -147,19 +147,19 @@ const SortableItem = ({ isEditing, item, materi, setMateri }) => {
                 <div className="d-flex align-items-center gap-2" style={{ minHeight: "30px" }}>
                     {isEditing &&
                         [
-                            { src: item.showSub ? view : hide, action: () => toggleSubMateri(item.id) },
+                            // { src: item.showSub ? view : hide, action: () => toggleSubMateri(item.id) },
                             { src: edit_2, action: () => startEditingNameMateri(item.id) },
-                            {
-                                src: add_2,
-                                action: () => {
-                                    toggleSubMateri(item.id);
-                                    if (item.showSub) {
-                                        handleAddSubMateri(item.id);
-                                    } else {
-                                        toggleSubMateriAndhandleAddSubMateri(item.id);
-                                    }
-                                }
-                            }
+                            // {
+                            //     src: add_2,
+                            //     action: () => {
+                            //         toggleSubMateri(item.id);
+                            //         if (item.showSub) {
+                            //             handleAddSubMateri(item.id);
+                            //         } else {
+                            //             toggleSubMateriAndhandleAddSubMateri(item.id);
+                            //         }
+                            //     }
+                            // }
                         ].map((btn, index) => (
                             <div
                                 key={index}
@@ -208,9 +208,9 @@ SortableItem.propTypes = {
 const MateriForm = ({ formData, setFormData, isEditing }) => {
     const handleAddMateri = () => {
         const materiList = formData.materi || [];
-        const newId = (materiList.length + 1).toString();
+        const newId = `${(materiList.length + 1).toString()}`;
         const newOrder = materiList.length + 1;
-        let data = { id: newId, name: '', isEditing: true, subcategories: [], showSub: false, order: newOrder }
+        let data = { id: newId, name: '', isEditing: true, subcategories: [], showSub: false, isNew:true,order: newOrder }
         setFormData(prev => ({
             ...prev,
             materi: [...materiList, data]

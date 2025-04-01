@@ -126,8 +126,14 @@ const Navbar = () => {
                     fontWeight: "600",
                   }}
                   onClick={(e) => {
-                    handleClick(item);
-                    setActiveIndex(index);
+                    if (item == "Home") {
+                      handleClick("");
+                      setActiveIndex(index);
+                    }else{
+                      handleClick(item);
+                      setActiveIndex(index);
+                    }
+
                   }}
                 >
                   {item}
@@ -145,30 +151,7 @@ const Navbar = () => {
 
           {token ? (
             <>
-              <form className="d-flex position-relative">
-                <input
-                  className="form-control rounded-pill ps-5"
-                  type="search"
-                  placeholder="Search anything..."
-                  aria-label="Search"
-                  style={{
-                    height: "28px",
-                    width: "280px",
-                    border: `1.5px solid ${colors.primary}`,
-                  }}
-                />
-                <span className="position-absolute start-0 ms-3 text-muted">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    viewBox="0 0 16 16"
-                  >
-                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.615.656a5 5 0 1 1 3.536-1.464A5 5 0 0 1 6.127 11z" />
-                  </svg>
-                </span>
-              </form>
+              
               <img
                 src={notif}
                 alt="Profile"
@@ -186,7 +169,7 @@ const Navbar = () => {
                 style={{ height: "32px", backgroundColor: colors.primary }}
                 onClick={() => handleClick("my-courses")}
               >
-                Kursus Saya
+                my course
               </button>
               <img
                 src={picture ? picture : defaultPicture}
