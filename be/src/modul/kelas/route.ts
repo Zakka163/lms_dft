@@ -10,4 +10,5 @@ RouterKelas.get('/id/:id', authMiddleware, authorizationMiddleware("admin"), Kel
 RouterKelas.put('/edit/:id', authMiddleware, authorizationMiddleware("admin"), upload.single("gambar"), KelasController.update);
 RouterKelas.delete('/delete/:id', authMiddleware, authorizationMiddleware("admin"), KelasController.delete);
 RouterKelas.get('/siswa', authMiddleware, KelasController.siswa);
+RouterKelas.get('/siswa/detail/:id', authMiddleware, KelasController.detail_kelas);
 export default RouterKelas;

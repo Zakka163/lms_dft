@@ -397,6 +397,77 @@ class KelasController {
             res.status(500).json({ success: false, message: error?.message || "Terjadi kesalahan" });
         }
     }
+    static async detail_kelas(req: Request, res: Response): Promise<any> {
+        try {
+            const query = `SELECT 
+                    k.kelas_id, 
+                    k.nama_kelas, 
+                    k.deskripsi_kelas,
+                    k.poin_reward,
+                    k.harga_kelas,
+                    k.harga_diskon_kelas,
+                    k.pembelajaran_kelas,
+                    k.status_kelas,
+                    k.pengajar,
+                    k.background_kelas,
+                    COALESCE(
+                        (SELECT JSON_ARRAYAGG(
+                            JSON_OBJECT(
+                                'sub_kategori_id', sk.sub_kategori_id,
+                                'nama_kategori', kt.nama_kategori,
+                                'kategori_id', kt.kategori_id,
+                                'nama_sub_kategori', sk.nama_sub_kategori
+                            )
+                        ) 
+                        FROM kategori_kelas kk
+                        JOIN sub_kategori sk ON sk.sub_kategori_id = kk.sub_kategori_id AND sk.deletedAt IS NULL
+                        JOIN kategori kt ON kt.kategori_id = sk.kategori_id AND kt.deletedAt IS NULL
+                        WHERE kk.kelas_id = k.kelas_id and  kk.deletedAt is null
+                        ), JSON_ARRAY()
+                    ) AS kategori,
+                    COALESCE(
+                        (SELECT JSON_ARRAYAGG(
+                            JSON_OBJECT(
+                                'materi_id', m.materi_id,
+                                'nama_materi', m.nama_materi,
+                                'urutan', m.urutan,
+                                'sub_materi', COALESCE(
+                                    (SELECT JSON_ARRAYAGG(
+                                        JSON_OBJECT(
+                                            'sub_materi_id', sm.sub_materi_id,
+                                            'nama_sub_materi', sm.nama_sub_materi,
+                                            'urutan', sm.urutan,
+                                            'link', sm.link
+                                        )
+                                    ) FROM sub_materi sm 
+                                    WHERE sm.materi_id = m.materi_id AND sm.deletedAt IS NULL), JSON_ARRAY()
+                                )
+                            )
+                        ) 
+                        FROM materi m 
+                        WHERE m.kelas_id = k.kelas_id AND m.deletedAt IS NULL
+                        ), JSON_ARRAY()
+                    ) AS materi
+                FROM kelas k
+                WHERE k.deletedAt IS NULL and k.kelas_id = :kelasId
+            `;
+
+            const [data]: ResponseKelas[] = await sq.query(query, {
+                replacements: { kelasId: req.params.id },
+                type: QueryTypes.SELECT,
+            });
+
+            if (!data) {
+                return res.status(404).json({ success: false, message: "Kelas tidak ditemukan" });
+            }
+            data.kategori = data?.kategori ? JSON.parse(data.kategori) : [];
+            data.materi = data?.materi ? JSON.parse(data.materi) : [];
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            console.error("Error:", error);
+            res.status(500).json({ success: false, message: "Terjadi kesalahan server" });
+        }
+    }
 }
 
 export default KelasController;
