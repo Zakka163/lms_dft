@@ -168,7 +168,7 @@ class KelasController {
                 //     if (Array.isArray(materiItem.sub_materi) && materiItem.sub_materi.length > 0) {
                 //         materiItem.sub_materi.forEach((subItem: any) => {
                 //             subMateriData.push({
-                //                 link: subItem.link,
+                //                 content: subItem.content,
                 //                 nama_sub_materi: subItem.nama_sub_materi,
                 //                 urutan: subItem.urutan,
                 //                 materi_id: materiBaru[index].materi_id as number,
@@ -236,7 +236,7 @@ class KelasController {
                                             'sub_materi_id', sm.sub_materi_id,
                                             'nama_sub_materi', sm.nama_sub_materi,
                                             'urutan', sm.urutan,
-                                            'link', sm.link
+                                            'content', sm.content
                                         )
                                     ) FROM sub_materi sm 
                                     WHERE sm.materi_id = m.materi_id AND sm.deletedAt IS NULL), JSON_ARRAY()
@@ -437,7 +437,7 @@ class KelasController {
                                             'sub_materi_id', sm.sub_materi_id,
                                             'nama_sub_materi', sm.nama_sub_materi,
                                             'urutan', sm.urutan,
-                                            'link', sm.link
+                                            'content', sm.content
                                         )
                                     ) FROM sub_materi sm 
                                     WHERE sm.materi_id = m.materi_id AND sm.deletedAt IS NULL), JSON_ARRAY()

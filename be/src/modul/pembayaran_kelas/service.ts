@@ -66,7 +66,7 @@ export const statusTransaction = async ({ server_key, data }: TransactionParams)
             }
         );
 
-        console.log("Transaction Response:", response.data);
+        console.log("Transaction Status Response:", response.data);
         return response.data;
     } catch (error) {
         throw error;

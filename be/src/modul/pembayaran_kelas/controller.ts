@@ -129,24 +129,51 @@ export const handlePaymentNotification = async (req: Request, res: Response): Pr
 };
 export const getStatus = async (req: Request, res: Response): Promise<any> => {
     try {
-        const { id } = req.params;
-        if (!id) {
+        let { id } = req.params;
+        const extractedId = extractOrderId(id).id;
+    
+        if (!extractedId) {
             return res.status(400).json({ message: "Harap isi semua data yang diperlukan" });
         }
-        const data_pembayaran = await PembayaranKelas.findByPk(id);
+        const data_pembayaran = await PembayaranKelas.findByPk(extractedId);
         if (!data_pembayaran) {
             return res.status(404).json({ message: "Kelas tidak ditemukan" });
         }
-        const status = statusTransaction({ server_key: process.env.SERVER_KEY as string, data: { order_id: data_pembayaran.midtrans_order_id } })
-        return res.status(201).json({ message: "Pembayaran berhasil dibuat", data: status });
+        const status = await statusTransaction({
+            server_key: process.env.SERVER_KEY as string,
+            data: { order_id: data_pembayaran.midtrans_order_id }
+        });
+    
+        if (status) {
+            if (status.transaction_status === "capture" || status.transaction_status === "settlement") {
+                await PembayaranKelas.update(
+                    { 
+                        status_pembayaran: "paid", 
+                        tanggal_pembayaran: status.transaction_time 
+                    },
+                    { where: { pembayaran_kelas_id: extractedId } }
+                );
+                await KelasSiswa.create({
+                    user_id: data_pembayaran.user_id,
+                    kelas_id: data_pembayaran.kelas_id
+                });
+            } else if (status.transaction_status === "cancel" || status.transaction_status === "expire") {
+                await PembayaranKelas.update(
+                    { status_pembayaran: "failed" },
+                    { where: { pembayaran_kelas_id: extractedId } }
+                );
+            }
+        }
+    
+        return res.status(200).json({ data: data_pembayaran });
+    
     } catch (error: any) {
-        console.error("🚀 ~ createPembayaranKelas ~ error:", error?.response?.data?.error_messages || error?.message || error);
-
         return res.status(500).json({
             message: "Terjadi kesalahan",
             error: error?.response?.data?.error_messages || error?.message || "Unknown error",
         });
     }
+    
 };
 export const createSign = async (req: Request, res: Response): Promise<any> => {
     try {
