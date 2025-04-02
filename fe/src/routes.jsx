@@ -15,6 +15,9 @@ import Poin from "./pages/master/Poin/Poin.jsx";
 import Kelas from "./pages/master/Kelas/Index.jsx";
 import Course from "./pages/Course.jsx";
 import ClassDetail from "./pages/ClassDetail.jsx";
+import Transaksi from "./pages/master/Transaksi.jsx";
+import TransaksiDetail from "./pages/master/DetailTransaksi.jsx";
+import User from "./pages/master/User.jsx";
 const AdminPage = ({ children }) => {
   return (
     <div
@@ -65,6 +68,9 @@ const AppRoutes = () => {
                   <Route path="master/kategori" element={<Kategori />} />
                   <Route path="master/poin/*" element={<Poin />} /> {/* Rute ke Poin */}
                   <Route path="master/kelas/*" element={<Kelas />} />
+                  <Route path="transaksi" element={<Transaksi />} />
+                  <Route path="transaksi/:order_id" element={<TransaksiDetail />} />
+                  <Route path="daftar-siswa" element={<User />} />
                 </Routes>
               </AdminPage>
             </PrivateRoute>

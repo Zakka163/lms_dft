@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import UserService from "../modul/user/service.js";
+import { UserService } from "../modul/user/service.js";
 
 export async function seedData() {
     try {
@@ -11,7 +11,7 @@ export async function seedData() {
                 user_id: 1,
                 nama: "admin",
                 email: "admin@gmail.com",
-                kelamin: "L" as "L", 
+                kelamin: "L" as "L",
                 nomor_telpon: "0861673",
                 role: "admin" as "admin",
                 poin: 0,
@@ -22,7 +22,7 @@ export async function seedData() {
                 email: "siswa@gmail.com",
                 kelamin: "L" as "L",
                 nomor_telpon: "0861673",
-                role: "siswa" as "siswa", 
+                role: "siswa" as "siswa",
                 poin: 0,
             }
         ];
@@ -34,13 +34,13 @@ export async function seedData() {
         for (const user of users) {
             if (!isValidKelamin(user.kelamin)) {
                 console.error(`Invalid gender value for ${user.email}: ${user.kelamin}`);
-                continue; 
+                continue;
             }
             const existingUser = await UserService.getUserByEmail(user.email);
             if (!existingUser) {
                 await UserService.createUser({ ...user, password: passwordHash });
                 console.log("User inserted successfully");
-            }{
+            } {
                 console.log("User already exist, no data inserted");
             }
         }

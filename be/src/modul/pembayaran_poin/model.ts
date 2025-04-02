@@ -1,33 +1,33 @@
 import { Model, DataTypes } from "sequelize";
 import { sq } from "../../config/connection.js";
 import User from "../user/model.js";
-import Kelas from "../kelas/model.js";
+import Poin from "../poin/model.js";
 
-interface PembayaranKelasAttributes {
-    pembayaran_kelas_id?: number;
+interface PembayaranPoinAttributes {
+    pembayaran_poin_id?: number;
     harga: number;
     status_pembayaran: string;
     tanggal_pembayaran?: Date;
     user_id: number;
-    kelas_id: number;
+    poin_id: number;
     midtrans_order_id?: string;
     url_midtrans?: string;
 }
 
-class PembayaranKelas extends Model<PembayaranKelasAttributes> implements PembayaranKelasAttributes {
-    public pembayaran_kelas_id!: number;
+class PembayaranPoin extends Model<PembayaranPoinAttributes> implements PembayaranPoinAttributes {
+    public pembayaran_poin_id!: number;
     public harga!: number;
     public status_pembayaran!: string;
     public tanggal_pembayaran!: Date;
     public user_id!: number;
-    public kelas_id!: number;
+    public poin_id!: number;
     public midtrans_order_id!: string;
     public url_midtrans!: string;
 }
 
-PembayaranKelas.init(
+PembayaranPoin.init(
     {
-        pembayaran_kelas_id: {
+        pembayaran_poin_id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
@@ -61,28 +61,28 @@ PembayaranKelas.init(
                 key: "user_id",
             },
         },
-        kelas_id: {
+        poin_id: {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
-                model: Kelas,
-                key: "kelas_id",
+                model: Poin,
+                key: "poin_id",
             },
         },
     },
     {
         sequelize: sq,
-        modelName: "pembayaran_kelas",
-        tableName: "pembayaran_kelas",
+        modelName: "pembayaran_poin",
+        tableName: "pembayaran_poin",
         timestamps: true,
         paranoid: true,
     }
 );
 
-User.hasMany(PembayaranKelas, { foreignKey: "user_id" });
-PembayaranKelas.belongsTo(User, { foreignKey: "user_id" });
+User.hasMany(PembayaranPoin, { foreignKey: "user_id" });
+PembayaranPoin.belongsTo(User, { foreignKey: "user_id" });
 
-Kelas.hasMany(PembayaranKelas, { foreignKey: "kelas_id" });
-PembayaranKelas.belongsTo(Kelas, { foreignKey: "kelas_id" });
+Poin.hasMany(PembayaranPoin, { foreignKey: "poin_id" });
+PembayaranPoin.belongsTo(Poin, { foreignKey: "poin_id" });
 
-export default PembayaranKelas;
+export default PembayaranPoin;

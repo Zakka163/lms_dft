@@ -22,7 +22,6 @@ const LoadingSpinner = () => {
 
     return (
         <div className="d-flex flex-column align-items-center gap-3">
-
             <img
                 src={images[currentImage]}
                 alt="Loading"

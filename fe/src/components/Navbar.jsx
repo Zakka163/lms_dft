@@ -169,7 +169,7 @@ const Navbar = () => {
                 style={{ height: "32px", backgroundColor: colors.primary }}
                 onClick={() => handleClick("my-courses")}
               >
-                my course
+                My Course
               </button>
               <img
                 src={picture ? picture : defaultPicture}

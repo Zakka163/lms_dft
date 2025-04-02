@@ -8,6 +8,7 @@ import RouterPoin from "./modul/poin/route.js";
 import RouterKelas from "./modul/kelas/route.js";
 import PembayaranKelasRouter from "./modul/pembayaran_kelas/route.js";
 import TransaksiRouter from "./modul/transaksi/route.js";
+import PembayaranPoinRouter from "./modul/pembayaran_poin/route.js";
 const router = Router()
 
 
@@ -21,5 +22,6 @@ router.use('/sub_kategori',RouterSubKategori)
 router.use("/poin", RouterPoin);
 router.use("/kelas", RouterKelas);
 router.use("/pembayaran_kelas", PembayaranKelasRouter);
+router.use("/pembayaran_poin", PembayaranPoinRouter);
 router.use("/transaksi", TransaksiRouter);
 export default router

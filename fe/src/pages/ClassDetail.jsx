@@ -8,6 +8,7 @@ import { config } from "../config";
 import logo from "../assets/logo.png"
 import lock from "../assets/lock.png"
 import play_button from "../assets/play-button.png"
+import { errorNotify } from "../helper/toast";
 
 
 const GenericModal = ({ show, onClose, type, content }) => {
@@ -324,6 +325,7 @@ const ClassDetail = () => {
 
   const [classData, setClassData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const { id } = useParams();
   const [showModal, setShowModal] = useState(false);
@@ -373,7 +375,6 @@ const ClassDetail = () => {
   // Fetch class data from API
   const token = localStorage.getItem("token");
   useEffect(() => {
-    console.log("🚀 ~ ClassDetail ~ id:", id)
     const fetchClassData = async () => {
       try {
         const response = await axios.get(`${config.APIURL}/kelas/siswa/detail/${id}`,
@@ -401,14 +402,30 @@ const ClassDetail = () => {
     }
   }, [error]);
 
+
+  const handleCheckOut = async () => {
+    try {
+      setIsLoading(true)
+      const response = await axios.post(`${config.APIURL}/pembayaran_kelas/checkout`, { kelas_id: id }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      console.log("Response:", response.data.data);
+      window.location.href = response.data.data.redirect_url;
+      // setIsLoading(false)
+
+    } catch (error) {
+      toast.error("Gagal menambahkan poin: " + error.response?.data?.message || error.message);
+    }
+  }
   if (loading) {
     return <div className="text-center">Loading...</div>;
   }
 
   // If no class data or error
-  if (!classData) {
-    return <div className="text-center">Class not found</div>;
-  }
+ 
 
   return (
     <motion.div
@@ -447,13 +464,13 @@ const ClassDetail = () => {
                 {/* Additional Course Information */}
                 <div className="d-flex flex-wrap gap-2 mt-2">
                   <div className="d-flex align-items-center">
-                    <span className="text-primary me-2">🕒</span>
-                    <span><strong>{classData.durasi || "0 Hours"}</strong> Total Learning Hours</span>
+                    {/* <span className="text-primary me-2">🕒</span> */}
+                    <span><strong>{classData.durasi || "0 Hours"}</strong> </span>
                   </div>
 
                   <div className="d-flex align-items-center">
-                    <span className="text-success me-2">👨‍🎓</span>
-                    <span><strong>{classData.total_siswa || "0 Students"}</strong> Enrolled</span>
+                    {/* <span className="text-success me-2">👨‍🎓</span> */}
+                    <span><strong>{classData.total_siswa || "0 Students"}</strong></span>
                   </div>
 
                   {/* <div className="d-flex align-items-center">
@@ -614,11 +631,43 @@ const ClassDetail = () => {
 
                   <h3 className="text-danger mb-3">{classData.harga}</h3>
                   <div className="d-flex justify-content-center">
-                    <button className="btn w-80 mb-3" style={{
-                      backgroundColor: colors.primary,
-                      color: "white"
-                    }}>Buy Now</button>
+                    <button
+                      className="btn"
+                      disabled={isLoading}
+                      style={{
+                        // padding: "4px 4px",  // Increase padding for a bigger button
+                        width: "100px",  // Set a fixed width to make it more prominent
+                        height: "40px",  // Increase the height
+                        border: `2px solid ${colors.primary}`,
+                        color: "white",
+                        backgroundColor: colors.primary,
+                        cursor: "pointer",
+                        transition: "transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease",
+                        fontSize: "16px",  // Increase font size
+                        fontWeight: "bold",  // Make the text bold
+                        marginBottom: "10px"
+
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.2)";
+                        e.target.style.transform = "scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.boxShadow = "none";
+                        e.target.style.transform = "scale(1)";
+                      }}
+                      onMouseDown={(e) => {
+                        e.target.style.transform = "scale(0.95)";
+                      }}
+                      onMouseUp={(e) => {
+                        e.target.style.transform = "scale(1.05)";
+                      }}
+                      onClick={handleCheckOut}
+                    >
+                      Buy Now
+                    </button>
                   </div>
+
                   <div className="d-flex flex-column gap-2 rounded shadow-sm bg-light">
                     <div className="d-flex align-items-center p-2 border-bottom">
                       <span className="text-primary me-2">📚</span>
