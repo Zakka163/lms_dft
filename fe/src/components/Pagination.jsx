@@ -2,6 +2,8 @@ import PropTypes from "prop-types";
 import colors from "../helper/colors";
 
 export const Pagination = ({ currentPage, onPageChange, totalPages, disableButton }) => {
+    console.log("🚀 ~ Pagination ~ currentPage:", currentPage)
+    console.log("🚀 ~ Pagination ~ totalPages:", totalPages)
     const renderPageNumbers = () => {
         let pages = [];
         for (let i = 1; i <= totalPages; i++) {
@@ -54,13 +56,13 @@ export const Pagination = ({ currentPage, onPageChange, totalPages, disableButto
                     width: "25px",
                     height: "25px",
                     borderRadius: "50%",
-                    backgroundColor: currentPage === totalPages || disableButton ? "#888" : colors.primary,
+                    backgroundColor: (currentPage === totalPages || totalPages == 0 )  || disableButton ? "#888" : colors.primary,
                     border: "none",
                     color: "white",
-                    cursor: currentPage === totalPages || disableButton ? "not-allowed" : "pointer",
+                    cursor: (currentPage === totalPages || totalPages == 0 ) || disableButton ? "not-allowed" : "pointer",
                 }}
                 onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage === totalPages || disableButton}
+                disabled={(currentPage === totalPages || totalPages == 0 )  || disableButton}
             >
                 <div style={{ marginBottom: "3px" }}> &#8250;</div>
             </button>

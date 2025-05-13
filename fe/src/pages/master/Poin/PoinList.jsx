@@ -22,12 +22,23 @@ const formatPrice = (price) => {
 };
 
 
-const PointTable = ({ dataPoin, currentPage }) => {
-    const navigate = useNavigate()
+const PointTable = ({ dataPoin, currentPage, totalBarisYangDibutuhkan }) => {
+    const tinggiBaris = 60; // px
+    const jumlahBarisKosong = Math.max(0, totalBarisYangDibutuhkan - dataPoin.length);
+    const navigate = useNavigate();
+
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+        }).format(price);
+    };
+
     return (
-        <div className="container">
+        <div className="w-100 h-100 flex-grow-1 overflow-auto">
             <div className="mt-2">
-                <div className="p-2 row fw-bold border-bottom align-items-center">
+                {/* Header */}
+                <div className="d-flex fw-bold border-bottom align-items-center w-100">
                     <div className="text-center" style={{ width: "6%" }}>No</div>
                     <div style={{ width: "35%" }}>Nama Poin</div>
                     <div style={{ width: "29%" }}>Harga</div>
@@ -37,48 +48,45 @@ const PointTable = ({ dataPoin, currentPage }) => {
 
                 {/* Data Rows */}
                 {dataPoin.map((point, index) => (
-                    <div key={point.poin_id} className="row py-2 border-bottom align-items-center"
-                        style={{ height: "60px", backgroundColor: index % 2 !== 0 ? colors.bg_4 : colors.bg_3 }}>
-
-                        {/* Nomor */}
+                    <div
+                        key={point.poin_id}
+                        className="d-flex py-2 border-bottom align-items-center w-100"
+                        style={{ height: `${tinggiBaris}px`, backgroundColor: index % 2 !== 0 ? colors.bg_4 : colors.bg_3 }}
+                    >
                         <div className="text-center" style={{ width: "6%" }}>
-                            <div>{(currentPage - 1) * 10 + index + 1}</div>
+                            {(currentPage - 1) * 10 + index + 1}
                         </div>
-
-                        {/* Nama Poin */}
                         <div style={{ width: "35%" }}>{point.nama_poin}</div>
-
-                        {/* Harga Diskon */}
                         <div style={{ width: "29%" }}>{formatPrice(point.harga_diskon)}</div>
-
-                        {/* Status */}
                         <div className="text-center" style={{ width: "20%" }}>
                             <span className={`badge ${point.status ? "bg-success" : "bg-danger"}`}>
                                 {point.status ? "aktif" : "non-aktif"}
                             </span>
                         </div>
-
-                        {/* Opsi */}
-                        <div className="text-center" style={{ width: "10%" }}>
-                            <button className="btn btn-danger btn-sm"
-                                onClick={() => navigate(`/admin/master/poin/edit/${point.poin_id}`)}>
+                        <div className="d-flex justify-content-center" style={{ width: "10%" }}>
+                            <button
+                                className="btn btn-danger btn-sm"
+                                onClick={() => navigate(`/admin/master/poin/edit/${point.poin_id}`)}
+                            >
                                 Detail
                             </button>
                         </div>
                     </div>
                 ))}
 
-                {/* Placeholder jika data kurang dari 10 */}
-                {[...Array(Math.max(0, 10 - dataPoin.length))].map((_, i) => (
-                    <div key={`empty-${i}`} className="row py-2 border-bottom align-items-center"
-                        style={{ height: "60px", backgroundColor: i % 2 !== 0 ? colors.bg_4 : colors.bg_3 }}>
-                    </div>
+                {/* Placeholder Rows */}
+                {[...Array(jumlahBarisKosong)].map((_, i) => (
+                    <div
+                        key={`empty-${i}`}
+                        className="d-flex py-2 border-bottom align-items-center w-100"
+                        style={{ height: `${tinggiBaris}px`, backgroundColor: i % 2 == 0 ? colors.bg_4 : colors.bg_3 }}
+                    ></div>
                 ))}
-
             </div>
         </div>
     );
 };
+
 PointTable.propTypes = {
     dataPoin: PropTypes.array.isRequired,
     currentPage: PropTypes.number.isRequired,
@@ -86,6 +94,9 @@ PointTable.propTypes = {
 
 
 export const PoinList = () => {
+    const tinggiBaris = 60; // px
+    const tinggiTarget = window.innerHeight * 0.8; // 80% dari tinggi layar
+    const totalBarisYangDibutuhkan = Math.floor(tinggiTarget / tinggiBaris);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPage, setTotalPages] = useState(1);
     const navigate = useNavigate()
@@ -98,7 +109,7 @@ export const PoinList = () => {
     const serviceGetAllPoin = useCallback(async (page = 1, search = "") => {
         try {
             setIsLoading(true)
-            const response = await axios.get(`${config.APIURL}/poin?page=${page}&search=${search}`, {
+            const response = await axios.get(`${config.APIURL}/poin?page=${page}&search=${search}&limit=${totalBarisYangDibutuhkan}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -132,7 +143,7 @@ export const PoinList = () => {
         >
             <ToastContainer />
             <div className="bg-white shadow-lg d-flex flex-column" style={{ width: "95%", height: "95%", borderRadius: "10px", paddingTop: "10px", paddingBottom: "10px" }}>
-                <div className="p-2 flex-shrink-0 d-flex flex-rpw" style={{ backgroundColor: colors.bg_2, marginBottom: "5px" }}>
+                <div className=" p-3 d-flex flex-row flex-shrink-0 align-items-center flex-wrap justify-content-between" style={{ padding: "10px", gap: "10px" }}>
                     <div
                         className="border border-danger d-flex align-items-center px-2"
                         style={{
@@ -203,10 +214,10 @@ export const PoinList = () => {
 
                 </div>
 
-                <div className="flex-grow-1 d-flex justify-content-center">
+                <div className=" flex-grow-1 d-flex justify-content-center align-items-center">
                     <div className="flex-grow-1 d-flex justify-content-center">
                         {!isLoading ? (
-                            <PointTable dataPoin={dataPoin} currentPage={currentPage} />
+                            <PointTable dataPoin={dataPoin} currentPage={currentPage} totalBarisYangDibutuhkan={totalBarisYangDibutuhkan} />
                         ) : (
                             <div className="container-fluid position-relative">
                                 <div className="mt-2">

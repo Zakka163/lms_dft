@@ -11,8 +11,11 @@ import { config } from "../../config";
 import axios from "axios";
 import { errorNotify } from "../../helper/toast";
 
-const UserTable = ({ dataUser, currentPage }) => {
+const UserTable = ({ dataUser, currentPage, totalBarisYangDibutuhkan }) => {
     const navigate = useNavigate();
+    const tinggiBaris = 60; // px
+    const jumlahBarisKosong = Math.max(0, totalBarisYangDibutuhkan - dataUser.length);
+
     const getKelaminBadge = (kelamin) => {
         if (kelamin === "L") {
             return "bg-success"; // Hijau untuk Laki-laki
@@ -23,20 +26,17 @@ const UserTable = ({ dataUser, currentPage }) => {
         }
     };
 
-    // Fungsi untuk format status kelamin
     const formatKelamin = (kelamin) => {
-        if (kelamin === "L") {
-            return "Laki-laki";
-        } else if (kelamin === "P") {
-            return "Perempuan";
-        } else {
-            return "Tidak Diketahui";
-        }
+        if (kelamin === "L") return "Laki-laki";
+        if (kelamin === "P") return "Perempuan";
+        return "Tidak Diketahui";
     };
+
     return (
-        <div className="container">
+        <div className="w-100 h-100 flex-grow-1 overflow-auto">
             <div className="mt-2">
-                <div className="p-2 row fw-bold border-bottom align-items-center">
+                {/* Header */}
+                <div className="d-flex fw-bold border-bottom align-items-center w-100">
                     <div className="text-center" style={{ width: "6%" }}>No</div>
                     <div style={{ width: "25%" }}>Nama</div>
                     <div style={{ width: "30%" }}>Email</div>
@@ -45,9 +45,13 @@ const UserTable = ({ dataUser, currentPage }) => {
                     <div className="text-center" style={{ width: "10%" }}>Opsi</div>
                 </div>
 
+                {/* Data Rows */}
                 {dataUser.map((user, index) => (
-                    <div key={user.id} className="row py-2 border-bottom align-items-center"
-                        style={{ height: "60px", backgroundColor: index % 2 !== 0 ? "#f8f9fa" : "#ffffff" }}>
+                    <div
+                        key={user.id}
+                        className="d-flex py-2 border-bottom align-items-center w-100"
+                        style={{ height: `${tinggiBaris}px`, backgroundColor: index % 2 !== 0 ? "#f8f9fa" : "#ffffff" }}
+                    >
                         <div className="text-center" style={{ width: "6%" }}>
                             {(currentPage - 1) * 10 + index + 1}
                         </div>
@@ -56,23 +60,28 @@ const UserTable = ({ dataUser, currentPage }) => {
                         <div className="text-center" style={{ width: "14%" }}>
                             <span className={`badge ${getKelaminBadge(user.kelamin)}`}>
                                 {formatKelamin(user.kelamin)}
-                            </span></div>
+                            </span>
+                        </div>
                         <div className="text-center" style={{ width: "15%" }}>{user.poin}</div>
-                        <div className="text-center" style={{ width: "10%" }}>
+                        <div className="d-flex justify-content-center" style={{ width: "10%" }}>
                             <button
                                 className="btn btn-primary btn-sm"
                                 style={{ fontSize: "12px" }}
-                                onClick={() => navigate(`/admin/user/${user.id}`)}>
+                                onClick={() => navigate(`/admin/user/${user.id}`)}
+                            >
                                 Detail
                             </button>
                         </div>
                     </div>
                 ))}
 
-                {[...Array(Math.max(0, 10 - dataUser.length))].map((_, i) => (
-                    <div key={`empty-${i}`} className="row py-2 border-bottom align-items-center"
-                        style={{ height: "60px", backgroundColor: i % 2 !== 0 ? "#f8f9fa" : "#ffffff" }}>
-                    </div>
+                {/* Placeholder Rows */}
+                {[...Array(jumlahBarisKosong)].map((_, i) => (
+                    <div
+                        key={`empty-${i}`}
+                        className="d-flex py-2 border-bottom align-items-center w-100"
+                        style={{ height: `${tinggiBaris}px`, backgroundColor: i % 2 !== 0 ? "#f8f9fa" : "#ffffff" }}
+                    ></div>
                 ))}
             </div>
         </div>
@@ -95,6 +104,9 @@ UserTable.propTypes = {
 
 
 const User = () => {
+    const tinggiBaris = 60; // px
+    const tinggiTarget = window.innerHeight * 0.8;
+    const totalBarisYangDibutuhkan = Math.floor(tinggiTarget / tinggiBaris);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [selectedTab, setSelectedTab] = useState("all");
@@ -108,7 +120,7 @@ const User = () => {
     const serviceGetUsers = useCallback(async (page = 1) => {
         try {
             setIsLoading(true)
-            const response = await axios.get(`${config.APIURL}/user/siswa?page=${page}`, {
+            const response = await axios.get(`${config.APIURL}/user/siswa?page=${page}&limit=${totalBarisYangDibutuhkan}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -137,7 +149,7 @@ const User = () => {
         <motion.div className="vh-100 flex-grow-1 d-flex justify-content-center align-items-center" style={{ backgroundColor: colors.background }} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3, ease: "easeOut" }} >
             <ToastContainer />
             <div className="  bg-white shadow-lg d-flex flex-column  d-flex flex-column" style={{ width: "95%", height: "95%", borderRadius: "10px", paddingTop: "10px", paddingBottom: "10px" }}>
-                <div className="p-2 flex-shrink-0 d-flex flex-rpw" style={{ backgroundColor: colors.bg_2, marginBottom: "5px" }}>
+                <div className=" p-3 d-flex flex-row flex-shrink-0 align-items-center flex-wrap justify-content-between" style={{ padding: "10px", gap: "10px" }}>
                     <div
                         className=" d-flex align-items-center px-2"
                         style={{
@@ -209,12 +221,12 @@ const User = () => {
                 </div>
                 <div className=" flex-grow-1 d-flex justify-content-center align-items-center">
                     <div className=" flex-grow-1 d-flex justify-content-center">
-                        {false ? <div className="d-flex align-items-center justify-content-center bg-white bg-opacity-50"><LoadingSpinner /></div> : <UserTable dataUser={dataUser} currentPage={1} />}
+                        {false ? <div className="d-flex align-items-center justify-content-center bg-white bg-opacity-50"><LoadingSpinner /></div> : <UserTable dataUser={dataUser} currentPage={1} totalBarisYangDibutuhkan={totalBarisYangDibutuhkan} />}
                     </div>
                 </div>
                 <div className="">
                     <div className="flex-shrink-0" >
-                        <Pagination currentPage={1} totalPages={2} onPageChange={(page) => console.log(page)} disableButton={true} />
+                        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => serviceGetUsers(page)} disableButton={isLoading} />
                     </div>
                 </div>
             </div>

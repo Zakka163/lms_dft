@@ -5,15 +5,7 @@
     "target": "ES6",
     "outDir": "./dist",
     "rootDir": "./src",
-    "strict": true,
-    "skipLibCheck": true, // Lewati pengecekan tipe pada deklarasi library pihak ketiga
-    "noEmitOnError": false, // Tetap generate output meskipun ada error
-    "incremental": true, // Aktifkan incremental build (lebih cepat pada perubahan kecil)
-    "tsBuildInfoFile": "./tsconfig.tsbuildinfo", // Cache incremental build
-    "forceConsistentCasingInFileNames": true, // Hindari kesalahan case-sensitive di berbagai OS
-    // "moduleResolution": "node", // Gunakan resolusi modul Node.js yang lebih cepat
-    "isolatedModules": true, // Memungkinkan transpiling tanpa dependensi lintas file
-    "removeComments": true // Menghapus komentar dari output agar lebih ringan
+    "strict": true
   },
   "include": [
     "src/**/*.ts"

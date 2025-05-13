@@ -11,8 +11,11 @@ import axios from "axios";
 import { errorNotify } from "../../helper/toast";
 
 
-const TransaksiTable = ({ dataTransaksi, currentPage }) => {
-    
+const TransaksiTable = ({ dataTransaksi, currentPage, totalBarisYangDibutuhkan }) => {
+    const barisPerPage = 13;
+    const tinggiBaris = 60; // px
+    const jumlahBarisKosong = Math.max(0, totalBarisYangDibutuhkan - dataTransaksi.length);
+
     const formatPrice = (price) => {
         return new Intl.NumberFormat("id-ID", {
             style: "currency",
@@ -40,9 +43,10 @@ const TransaksiTable = ({ dataTransaksi, currentPage }) => {
     const navigate = useNavigate();
 
     return (
-        <div className="container">
+        <div className="w-100 h-100 flex-grow-1 overflow-auto">
             <div className="mt-2">
-                <div className="p-2 row fw-bold border-bottom align-items-center">
+                {/* Header */}
+                <div className="d-flex fw-bold border-bottom align-items-center w-100">
                     <div className="text-center" style={{ width: "6%" }}>No</div>
                     <div style={{ width: "25%" }}>Order ID</div>
                     <div style={{ width: "15%" }}>User</div>
@@ -52,9 +56,16 @@ const TransaksiTable = ({ dataTransaksi, currentPage }) => {
                     <div className="text-center" style={{ width: "5%" }}>Opsi</div>
                 </div>
 
+                {/* Isi Data */}
                 {dataTransaksi.map((transaksi, index) => (
-                    <div key={transaksi.order_id} className="row py-2 border-bottom align-items-center"
-                        style={{ height: "60px", backgroundColor: index % 2 !== 0 ? colors.bg_4 : colors.bg_3 }}>
+                    <div
+                        key={transaksi.order_id}
+                        className="d-flex py-2 border-bottom align-items-center w-100"
+                        style={{
+                            height: "60px",
+                            backgroundColor: index % 2 !== 0 ? colors.bg_4 : colors.bg_3,
+                        }}
+                    >
                         <div className="text-center" style={{ width: "6%" }}>
                             {(currentPage - 1) * 10 + index + 1}
                         </div>
@@ -69,25 +80,33 @@ const TransaksiTable = ({ dataTransaksi, currentPage }) => {
                                 {formatStatus(transaksi.status)}
                             </span>
                         </div>
-                        <div className=" align-items-center" style={{ width: "5%", padding: "0px" }}>
+                        <div className="d-flex justify-content-center" style={{ width: "5%", padding: "0px" }}>
                             <button
-                                className=" btn btn-primary btn-sm"
+                                className="btn btn-primary btn-sm"
                                 style={{ fontSize: "12px" }}
-                                onClick={() => navigate(`/admin/transaksi/${transaksi.order_id}`)}>
+                                onClick={() => navigate(`/admin/transaksi/${transaksi.order_id}`)}
+                            >
                                 Detail
                             </button>
-
                         </div>
                     </div>
                 ))}
-                {[...Array(Math.max(0, 10 - dataTransaksi.length))].map((_, i) => (
-                    <div key={`empty-${i}`} className="row py-2 border-bottom align-items-center"
-                        style={{ height: "60px", backgroundColor: i % 2 !== 0 ? colors.bg_4 : colors.bg_3 }}>
-                    </div>
+
+                {[...Array(jumlahBarisKosong)].map((_, i) => (
+                    <div
+                        key={`empty-${i}`}
+                        className="d-flex py-2 border-bottom align-items-center w-100"
+                        style={{
+                            height: `${tinggiBaris}px`,
+                            backgroundColor: i % 2 !== 0 ? colors.bg_4 : colors.bg_3,
+                        }}
+                    ></div>
                 ))}
+
             </div>
         </div>
     );
+
 
 };
 
@@ -106,6 +125,9 @@ TransaksiTable.propTypes = {
 
 
 const Transaksi = () => {
+    const tinggiBaris = 60; // px
+    const tinggiTarget = window.innerHeight * 0.8; // 80% dari tinggi layar
+    const totalBarisYangDibutuhkan = Math.floor(tinggiTarget / tinggiBaris);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [selectedTab, setSelectedTab] = useState("all");
@@ -118,7 +140,7 @@ const Transaksi = () => {
     const serviceGetTransaksi = useCallback(async (page = 1, type = "all") => {
         try {
             setIsLoading(true)
-            const response = await axios.get(`${config.APIURL}/transaksi?page=${page}&type=${type}`, {
+            const response = await axios.get(`${config.APIURL}/transaksi?page=${page}&type=${type}&limit=${totalBarisYangDibutuhkan}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -162,7 +184,7 @@ const Transaksi = () => {
                 onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
                 onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
                 onClick={() => {
-                    serviceGetTransaksi(1,label.toLowerCase())
+                    serviceGetTransaksi(1, label.toLowerCase())
                     setSelectedTab(label.toLowerCase())
                 }}
             >
@@ -182,7 +204,7 @@ const Transaksi = () => {
         >
             <ToastContainer />
             <div
-                className=" bg-white shadow-lg d-flex flex-column"
+                className="bg-white shadow-lg d-flex flex-column"
                 style={{ width: "95%", height: "95%", borderRadius: "10px" }}
             >
                 <div className=" p-3 d-flex flex-row flex-shrink-0 align-items-center flex-wrap justify-content-between" style={{ padding: "10px", gap: "10px" }}>
@@ -246,17 +268,15 @@ const Transaksi = () => {
 
                 {/* Konten Utama */}
                 <div className=" flex-grow-1 d-flex justify-content-center align-items-center">
-                    <div className=" flex-grow-1 d-flex justify-content-center">
-                        {isLoading ? <div className="d-flex align-items-center justify-content-center bg-white bg-opacity-50"><LoadingSpinner /></div> : <TransaksiTable dataTransaksi={dataTransaksi} currentPage={currentPage} />}
-                    </div>
+                    {isLoading ? <div className="d-flex align-items-center justify-content-center bg-white bg-opacity-50"><LoadingSpinner /></div> : <TransaksiTable dataTransaksi={dataTransaksi} currentPage={currentPage} totalBarisYangDibutuhkan={totalBarisYangDibutuhkan} />}
                     {/* {selectedTab === "kelas" && <span>Data Kelas</span>}
                     {selectedTab === "poin" && <span>Data Poin</span>}
                     {selectedTab === "all" && <span>Semua Data</span>} */}
                 </div>
 
                 {/* Footer */}
-                <div className="flex-shrink-0" >
-                    <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => serviceGetTransaksi(page,selectedTab)} disableButton={isLoading} />
+                <div className="flex-shrink-0" style={{ height: "70px" }}>
+                    <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => serviceGetTransaksi(page, selectedTab)} disableButton={isLoading} />
                 </div>
             </div>
         </motion.div>
